@@ -1,69 +1,74 @@
-<%% if layout == :playground %>
-  <%%= swift_story_layout(
+<% if layout == :playground %>
+  <%= swift_story_layout(
     title: "SwiftUI Rails Playground",
     description: "Experiment with the ExampleComponent"
   ) do %>
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
       <div>
         <h3 class="text-lg font-semibold mb-4">Live Preview</h3>
-        <%%= swift_preview_container do %>
-          <%%= render component, **args %>
-        <%% end %>
+        <%= swift_preview_container do %>
+          <%= render component, **args %>
+        <% end %>
       </div>
       
       <div>
         <h3 class="text-lg font-semibold mb-4">Component State</h3>
         <div class="bg-gray-100 rounded-lg p-4 font-mono text-sm">
           <div class="space-y-2">
-            <div>counter: <span class="text-blue-600">0</span></div>
-            <div>show_details: <span class="text-blue-600">false</span></div>
+            <% if component.respond_to?(:state) && component.state.any? %>
+              <% component.state.each do |key, value| %>
+                <div><%= key %>: <span class="text-blue-600"><%= value.inspect %></span></div>
+              <% end %>
+            <% else %>
+              <div class="text-gray-500">No state defined</div>
+            <% end %>
           </div>
         </div>
       </div>
     </div>
-  <%% end %>
+  <% end %>
 
-<%% elsif layout == :documentation %>
-  <%%= swift_story_layout(title: "ExampleComponent Documentation") do %>
+<% elsif layout == :documentation %>
+  <%= swift_story_layout(title: "ExampleComponent Documentation") do %>
     <div class="space-y-12">
-      <%%= swift_story_section(title: "Overview") do %>
+      <%= swift_story_section(title: "Overview") do %>
         <p class="text-gray-600">
           The ExampleComponent demonstrates the core features of SwiftUI Rails.
         </p>
-      <%% end %>
+      <% end %>
       
-      <%%= swift_story_section(title: "Preview") do %>
-        <%%= swift_preview_container do %>
-          <%%= render component, **args %>
-        <%% end %>
-      <%% end %>
+      <%= swift_story_section(title: "Preview") do %>
+        <%= swift_preview_container do %>
+          <%= render component, **args %>
+        <% end %>
+      <% end %>
     </div>
-  <%% end %>
+  <% end %>
 
-<%% elsif layout == :interactive_demo %>
-  <%%= swift_story_layout(title: "Interactive Demo") do %>
-    <%%= swift_story_grid(columns: 2) do %>
+<% elsif layout == :interactive_demo %>
+  <%= swift_story_layout(title: "Interactive Demo") do %>
+    <%= swift_story_grid(columns: 2) do %>
       <div>
         <h3 class="text-sm font-medium text-gray-700 mb-3">Initial State</h3>
-        <%%= swift_preview_container do %>
-          <%%= render ExampleComponent.new(title: "Initial State") %>
-        <%% end %>
+        <%= swift_preview_container do %>
+          <%= render ExampleComponent.new(title: "Initial State") %>
+        <% end %>
       </div>
       
       <div>
         <h3 class="text-sm font-medium text-gray-700 mb-3">With Description</h3>
-        <%%= swift_preview_container do %>
-          <%%= render ExampleComponent.new(
+        <%= swift_preview_container do %>
+          <%= render ExampleComponent.new(
             title: "With Description",
             description: "This shows the description"
           ) %>
-        <%% end %>
+        <% end %>
       </div>
-    <%% end %>
-  <%% end %>
+    <% end %>
+  <% end %>
 
-<%% else %>
-  <%%= swift_preview_container do %>
-    <%%= render component, **args %>
-  <%% end %>
-<%% end %>
+<% else %>
+  <%= swift_preview_container do %>
+    <%= render component, **args %>
+  <% end %>
+<% end %>

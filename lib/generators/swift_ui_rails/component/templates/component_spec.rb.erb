@@ -8,15 +8,29 @@ RSpec.describe <%= component_class_name %>, type: :component do
   let(:props) do
     {
 <% parsed_props.each_with_index do |prop, index| -%>
-      <%= prop[:name] %>: <%= prop[:type] == "String" ? '"value"' : 'nil' %><%= index < parsed_props.length - 1 ? ',' : '' %>
+      <%= prop[:name] %>: <%= case prop[:type]
+        when "String" then '"value"'
+        when "Symbol" then ':default'
+        when "Integer" then '42'
+        when "Float" then '3.14'
+        when "Boolean", "[TrueClass, FalseClass]" then 'true'
+        when "Array" then '[]'
+        when "Hash" then '{}'
+        when "Date" then 'Date.current'
+        when "Time", "DateTime" then 'Time.current'
+        else 'nil'
+      end %><%= index < parsed_props.length - 1 ? ',' : '' %>
 <% end -%>
     }
   end
   
   it "renders successfully" do
-    render_inline(component)
+    # Test using DSL-first approach
+    component_html = component.to_s
     
-    expect(page).to have_text("<%= class_name %>")
+    expect(component_html).to include("<%= class_name %>")
+    expect(component_html).to include("card")
+    expect(component_html).to include("vstack")
   end
   
 <% parsed_props.select { |p| p[:required] }.each do |prop| -%>

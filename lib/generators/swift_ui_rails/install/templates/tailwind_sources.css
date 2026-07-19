@@ -1,0 +1,4 @@
+
+/* SwiftUI Rails runtime-composed Tailwind utilities. Keep this finite source
+   contract because Tailwind cannot infer classes assembled by Ruby code. */
+@source inline("animate-spin auto-rows-fr disabled:cursor-not-allowed disabled:opacity-40 disabled:opacity-50 grid-flow-dense row-span-2 self-stretch");

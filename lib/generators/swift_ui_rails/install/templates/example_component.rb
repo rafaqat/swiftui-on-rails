@@ -1,38 +1,48 @@
 # frozen_string_literal: true
 
+# Demonstrates typed state, semantic modifiers, and signed component actions.
 class ExampleComponent < ApplicationComponent
-  prop :title, type: String, default: "Hello from SwiftUI Rails!"
+  prop :title, type: String, default: 'Hello from SwiftUI Rails!'
   prop :description, type: String
-  
-  state :counter, 0
-  state :show_details, false
-  
+
+  state :counter, 0, type: Integer
+  state :show_details, false, type: [TrueClass, FalseClass]
+
   computed :button_text do
-    show_details ? "Hide Details" : "Show Details"
+    show_details ? 'Hide Details' : 'Show Details'
   end
-  
+
   swift_ui do
-    card(elevation: 2).p(6) do
+    component = @component
+
+    card(elevation: 2).padding(6) do
       vstack(spacing: 16) do
         # Title
-        text(title).text_size("2xl").font_weight("bold")
-        
+        text(title).text_style(:title)
+
         # Counter section
         hstack(spacing: 12) do
-          button("-").on_tap { self.counter -= 1 }.tw("px-4 py-2 bg-red-500 text-white rounded")
-          text("Count: #{counter}").text_size("lg")
-          button("+").on_tap { self.counter += 1 }.tw("px-4 py-2 bg-green-500 text-white rounded")
+          button('-')
+            .on_tap { component.counter -= 1 }
+            .button_style(:danger)
+            .button_size(:regular)
+          text("Count: #{component.counter}").text_style(:headline)
+          button('+')
+            .on_tap { component.counter += 1 }
+            .button_style(:primary)
+            .button_size(:regular)
         end
-        
+
         # Toggle section
-        button(button_text)
-          .on_tap { self.show_details = !show_details }
-          .tw("px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600")
-        
+        button(component.button_text)
+          .on_tap { component.show_details = !component.show_details }
+          .button_style(:bordered_prominent)
+          .button_size(:regular)
+
         # Conditional content
-        if show_details && description
+        if component.show_details && component.description
           divider.my(4)
-          text(description).text_color("gray-600")
+          text(component.description).text_style(:supporting)
         end
       end
     end

@@ -1,5 +1,185 @@
 /* SwiftUI Rails Base Styles */
 
+/* Semantic design system
+ *
+ * These stable classes are emitted by foreground_style, background_style,
+ * font, and text_style. Applications can change the visual language by
+ * overriding the custom properties; DSL code never needs to name a Tailwind
+ * palette utility. Explicit themes may be set on any container with
+ * data-swift-ui-theme="light" or data-swift-ui-theme="dark".
+ */
+:root,
+[data-swift-ui-theme="light"] {
+  color-scheme: light;
+  --swift-ui-foreground-primary: #0f172a;
+  --swift-ui-foreground-secondary: #475569;
+  --swift-ui-foreground-tertiary: #64748b;
+  --swift-ui-foreground-quaternary: #64748b;
+  --swift-ui-foreground-accent: #1d4ed8;
+  --swift-ui-foreground-success: #166534;
+  --swift-ui-foreground-warning: #92400e;
+  --swift-ui-foreground-danger: #b91c1c;
+  --swift-ui-foreground-on-accent: #ffffff;
+  --swift-ui-background-canvas: #f8fafc;
+  --swift-ui-background-surface: #ffffff;
+  --swift-ui-background-elevated: #ffffff;
+  --swift-ui-background-muted: #f1f5f9;
+  --swift-ui-background-accent: #2563eb;
+  --swift-ui-background-success: #f0fdf4;
+  --swift-ui-background-warning: #fffbeb;
+  --swift-ui-background-danger: #fef2f2;
+  --swift-ui-font-large-title-size: 2.125rem;
+  --swift-ui-font-large-title-line-height: 1.18;
+  --swift-ui-font-large-title-weight: 700;
+  --swift-ui-font-title-size: 1.75rem;
+  --swift-ui-font-title-line-height: 1.22;
+  --swift-ui-font-title-weight: 700;
+  --swift-ui-font-title2-size: 1.375rem;
+  --swift-ui-font-title2-line-height: 1.27;
+  --swift-ui-font-title2-weight: 700;
+  --swift-ui-font-title3-size: 1.25rem;
+  --swift-ui-font-title3-line-height: 1.3;
+  --swift-ui-font-title3-weight: 600;
+  --swift-ui-font-headline-size: 1rem;
+  --swift-ui-font-headline-line-height: 1.5;
+  --swift-ui-font-headline-weight: 600;
+  --swift-ui-font-subheadline-size: 0.9375rem;
+  --swift-ui-font-subheadline-line-height: 1.47;
+  --swift-ui-font-subheadline-weight: 400;
+  --swift-ui-font-body-size: 1rem;
+  --swift-ui-font-body-line-height: 1.5;
+  --swift-ui-font-body-weight: 400;
+  --swift-ui-font-callout-size: 1rem;
+  --swift-ui-font-callout-line-height: 1.4;
+  --swift-ui-font-callout-weight: 400;
+  --swift-ui-font-footnote-size: 0.8125rem;
+  --swift-ui-font-footnote-line-height: 1.38;
+  --swift-ui-font-footnote-weight: 400;
+  --swift-ui-font-caption-size: 0.75rem;
+  --swift-ui-font-caption-line-height: 1.33;
+  --swift-ui-font-caption-weight: 400;
+  --swift-ui-font-caption2-size: 0.6875rem;
+  --swift-ui-font-caption2-line-height: 1.36;
+  --swift-ui-font-caption2-weight: 400;
+}
+
+[data-swift-ui-theme="dark"],
+[data-swift-ui-color-scheme="dark"],
+[data-color-scheme="dark"],
+.dark {
+  color-scheme: dark;
+  --swift-ui-foreground-primary: #f8fafc;
+  --swift-ui-foreground-secondary: #cbd5e1;
+  --swift-ui-foreground-tertiary: #94a3b8;
+  --swift-ui-foreground-quaternary: #94a3b8;
+  --swift-ui-foreground-accent: #7dd3fc;
+  --swift-ui-foreground-success: #86efac;
+  --swift-ui-foreground-warning: #fcd34d;
+  --swift-ui-foreground-danger: #fca5a5;
+  --swift-ui-foreground-on-accent: #082f49;
+  --swift-ui-background-canvas: #020617;
+  --swift-ui-background-surface: #0f172a;
+  --swift-ui-background-elevated: #1e293b;
+  --swift-ui-background-muted: #1e293b;
+  --swift-ui-background-accent: #38bdf8;
+  --swift-ui-background-success: #052e16;
+  --swift-ui-background-warning: #451a03;
+  --swift-ui-background-danger: #450a0a;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-swift-ui-theme]) {
+    color-scheme: dark;
+    --swift-ui-foreground-primary: #f8fafc;
+    --swift-ui-foreground-secondary: #cbd5e1;
+    --swift-ui-foreground-tertiary: #94a3b8;
+    --swift-ui-foreground-quaternary: #94a3b8;
+    --swift-ui-foreground-accent: #7dd3fc;
+    --swift-ui-foreground-success: #86efac;
+    --swift-ui-foreground-warning: #fcd34d;
+    --swift-ui-foreground-danger: #fca5a5;
+    --swift-ui-foreground-on-accent: #082f49;
+    --swift-ui-background-canvas: #020617;
+    --swift-ui-background-surface: #0f172a;
+    --swift-ui-background-elevated: #1e293b;
+    --swift-ui-background-muted: #1e293b;
+    --swift-ui-background-accent: #38bdf8;
+    --swift-ui-background-success: #052e16;
+    --swift-ui-background-warning: #451a03;
+    --swift-ui-background-danger: #450a0a;
+  }
+}
+
+.swift-ui-foreground-primary { color: var(--swift-ui-foreground-primary); }
+.swift-ui-foreground-secondary { color: var(--swift-ui-foreground-secondary); }
+.swift-ui-foreground-tertiary { color: var(--swift-ui-foreground-tertiary); }
+.swift-ui-foreground-quaternary { color: var(--swift-ui-foreground-quaternary); }
+.swift-ui-foreground-accent { color: var(--swift-ui-foreground-accent); }
+.swift-ui-foreground-success { color: var(--swift-ui-foreground-success); }
+.swift-ui-foreground-warning { color: var(--swift-ui-foreground-warning); }
+.swift-ui-foreground-danger { color: var(--swift-ui-foreground-danger); }
+.swift-ui-foreground-on-accent { color: var(--swift-ui-foreground-on-accent); }
+
+.swift-ui-background-canvas { background-color: var(--swift-ui-background-canvas); }
+.swift-ui-background-surface { background-color: var(--swift-ui-background-surface); }
+.swift-ui-background-elevated { background-color: var(--swift-ui-background-elevated); }
+.swift-ui-background-muted { background-color: var(--swift-ui-background-muted); }
+.swift-ui-background-accent { background-color: var(--swift-ui-background-accent); }
+.swift-ui-background-success { background-color: var(--swift-ui-background-success); }
+.swift-ui-background-warning { background-color: var(--swift-ui-background-warning); }
+.swift-ui-background-danger { background-color: var(--swift-ui-background-danger); }
+
+.swift-ui-font-large-title { font-size: var(--swift-ui-font-large-title-size); line-height: var(--swift-ui-font-large-title-line-height); font-weight: var(--swift-ui-font-large-title-weight); }
+.swift-ui-font-title { font-size: var(--swift-ui-font-title-size); line-height: var(--swift-ui-font-title-line-height); font-weight: var(--swift-ui-font-title-weight); }
+.swift-ui-font-title2 { font-size: var(--swift-ui-font-title2-size); line-height: var(--swift-ui-font-title2-line-height); font-weight: var(--swift-ui-font-title2-weight); }
+.swift-ui-font-title3 { font-size: var(--swift-ui-font-title3-size); line-height: var(--swift-ui-font-title3-line-height); font-weight: var(--swift-ui-font-title3-weight); }
+.swift-ui-font-headline { font-size: var(--swift-ui-font-headline-size); line-height: var(--swift-ui-font-headline-line-height); font-weight: var(--swift-ui-font-headline-weight); }
+.swift-ui-font-subheadline { font-size: var(--swift-ui-font-subheadline-size); line-height: var(--swift-ui-font-subheadline-line-height); font-weight: var(--swift-ui-font-subheadline-weight); }
+.swift-ui-font-body { font-size: var(--swift-ui-font-body-size); line-height: var(--swift-ui-font-body-line-height); font-weight: var(--swift-ui-font-body-weight); }
+.swift-ui-font-callout { font-size: var(--swift-ui-font-callout-size); line-height: var(--swift-ui-font-callout-line-height); font-weight: var(--swift-ui-font-callout-weight); }
+.swift-ui-font-footnote { font-size: var(--swift-ui-font-footnote-size); line-height: var(--swift-ui-font-footnote-line-height); font-weight: var(--swift-ui-font-footnote-weight); }
+.swift-ui-font-caption { font-size: var(--swift-ui-font-caption-size); line-height: var(--swift-ui-font-caption-line-height); font-weight: var(--swift-ui-font-caption-weight); }
+.swift-ui-font-caption2 { font-size: var(--swift-ui-font-caption2-size); line-height: var(--swift-ui-font-caption2-line-height); font-weight: var(--swift-ui-font-caption2-weight); }
+.swift-ui-visually-hidden { position: absolute !important; width: 1px !important; height: 1px !important; padding: 0 !important; margin: -1px !important; overflow: hidden !important; clip: rect(0, 0, 0, 0) !important; white-space: nowrap !important; border: 0 !important; }
+
+@media (prefers-contrast: more) {
+  :root,
+  [data-swift-ui-theme="light"] {
+    --swift-ui-foreground-secondary: #334155;
+    --swift-ui-foreground-tertiary: #334155;
+    --swift-ui-foreground-quaternary: #334155;
+    --swift-ui-foreground-accent: #1e40af;
+    --swift-ui-foreground-success: #14532d;
+    --swift-ui-foreground-warning: #78350f;
+    --swift-ui-foreground-danger: #991b1b;
+  }
+
+  [data-swift-ui-theme="dark"],
+  [data-swift-ui-color-scheme="dark"],
+  [data-color-scheme="dark"],
+  .dark {
+    --swift-ui-foreground-secondary: #e2e8f0;
+    --swift-ui-foreground-tertiary: #e2e8f0;
+    --swift-ui-foreground-quaternary: #e2e8f0;
+    --swift-ui-foreground-accent: #bae6fd;
+    --swift-ui-foreground-success: #bbf7d0;
+    --swift-ui-foreground-warning: #fde68a;
+    --swift-ui-foreground-danger: #fecaca;
+  }
+}
+
+@media (prefers-color-scheme: dark) and (prefers-contrast: more) {
+  :root:not([data-swift-ui-theme]) {
+    --swift-ui-foreground-secondary: #e2e8f0;
+    --swift-ui-foreground-tertiary: #e2e8f0;
+    --swift-ui-foreground-quaternary: #e2e8f0;
+    --swift-ui-foreground-accent: #bae6fd;
+    --swift-ui-foreground-success: #bbf7d0;
+    --swift-ui-foreground-warning: #fde68a;
+    --swift-ui-foreground-danger: #fecaca;
+  }
+}
+
 /* Layout Components */
 .swift-vstack {
   display: flex;
@@ -71,6 +251,18 @@
   flex: 1;
 }
 
+/* Advanced content */
+.swift-ui-async-image { position: relative; overflow: hidden; }
+.swift-ui-async-image__image { display: block; width: 100%; height: auto; }
+.swift-ui-async-image__loading,
+.swift-ui-async-image__error { padding: 1rem; text-align: center; }
+.swift-ui-chart__plot,
+.swift-ui-map__plot,
+.swift-ui-canvas__surface,
+.swift-ui-web-view { display: block; width: 100%; height: auto; }
+.swift-ui-web-view { min-height: 20rem; border: 0; }
+.swift-ui-rich-text > * + * { margin-top: 0.75rem; }
+
 /* Animations */
 @keyframes swift-fade-in {
   from { opacity: 0; }
@@ -109,4 +301,294 @@
 
 .swift-animation-scale {
   animation: swift-scale-in var(--animation-duration, 0.3s) var(--animation-easing, ease-out);
+}
+
+/* Navigation and presentation */
+.swift-ui-navigation-stack {
+  min-width: 0;
+}
+
+.swift-ui-navigation-link[aria-current="page"] {
+  font-weight: 600;
+  text-decoration-thickness: 0.125em;
+}
+
+.swift-ui-tab-list {
+  display: flex;
+  gap: 0.25rem;
+  overflow-x: auto;
+  border-bottom: 1px solid rgb(203 213 225);
+}
+
+.swift-ui-tab {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+  padding: 0.625rem 0.875rem;
+  border-bottom: 2px solid transparent;
+  color: var(--swift-ui-tab-color, rgb(71 85 105));
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.swift-ui-tab[aria-selected="true"] {
+  border-bottom-color: var(--swift-ui-tab-accent-color, rgb(37 99 235));
+  color: var(--swift-ui-tab-selected-color, rgb(29 78 216));
+  font-weight: 600;
+}
+
+.swift-ui-tab:focus-visible,
+.swift-ui-toolbar :is(button, a, input, select, textarea, summary):focus-visible,
+.swift-ui-presentation-trigger:focus-visible,
+.swift-ui-popover-trigger:focus-visible {
+  outline: 3px solid rgb(59 130 246 / 0.55);
+  outline-offset: 2px;
+}
+
+.swift-ui-tab-panel {
+  padding-block: 1rem;
+}
+
+.swift-ui-dialog {
+  width: min(36rem, calc(100vw - 2rem));
+  max-height: calc(100dvh - 2rem);
+  padding: 0;
+  overflow: auto;
+  border: 0;
+  border-radius: 1rem;
+  background: white;
+  color: rgb(15 23 42);
+  box-shadow: 0 24px 60px rgb(15 23 42 / 0.28);
+}
+
+.swift-ui-dialog::backdrop {
+  background: rgb(15 23 42 / 0.68);
+  backdrop-filter: blur(3px);
+}
+
+.swift-ui-sheet {
+  width: min(44rem, 100vw);
+}
+
+.swift-ui-dialog-surface {
+  display: flex;
+  flex-direction: column;
+}
+
+.swift-ui-dialog-header,
+.swift-ui-dialog-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+}
+
+.swift-ui-dialog-header {
+  justify-content: space-between;
+  border-bottom: 1px solid rgb(226 232 240);
+}
+
+.swift-ui-dialog-title {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 700;
+}
+
+.swift-ui-dialog-body {
+  padding: 1.25rem;
+}
+
+.swift-ui-dialog-message {
+  margin: 0;
+  color: rgb(71 85 105);
+}
+
+.swift-ui-dialog-actions {
+  justify-content: flex-end;
+  border-top: 1px solid rgb(226 232 240);
+}
+
+.swift-ui-dialog-dismiss-form {
+  display: contents;
+}
+
+.swift-ui-dialog-close,
+.swift-ui-dialog-dismiss {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.5rem;
+  border: 1px solid rgb(203 213 225);
+  border-radius: 0.625rem;
+  background: white;
+  color: rgb(30 41 59);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.swift-ui-dialog-close {
+  min-width: 2.5rem;
+  padding: 0.375rem 0.75rem;
+}
+
+.swift-ui-dialog-dismiss {
+  padding: 0.625rem 1rem;
+}
+
+.swift-ui-popover {
+  position: relative;
+}
+
+.swift-ui-popover-trigger {
+  cursor: pointer;
+}
+
+.swift-ui-popover-content {
+  position: absolute;
+  z-index: 30;
+  inset-block-start: calc(100% + 0.5rem);
+  inset-inline-start: 0;
+  min-width: 14rem;
+  padding: 0.875rem;
+  border: 1px solid rgb(226 232 240);
+  border-radius: 0.75rem;
+  background: white;
+  color: rgb(15 23 42);
+  box-shadow: 0 14px 35px rgb(15 23 42 / 0.16);
+}
+
+.swift-ui-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+  container-type: inline-size;
+}
+
+.swift-ui-toolbar--vertical {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.swift-ui-toolbar-items {
+  display: contents;
+}
+
+.swift-ui-toolbar-item {
+  display: inline-flex;
+  align-items: center;
+  flex: none;
+}
+
+.swift-ui-toolbar-overflow[hidden] {
+  display: none;
+}
+
+.swift-ui-toolbar[data-sui-enhanced="toolbar"] {
+  flex-wrap: nowrap;
+}
+
+.swift-ui-toolbar[data-sui-enhanced="toolbar"] > .swift-ui-toolbar-items {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  min-width: 0;
+  gap: 0.5rem;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+}
+
+.swift-ui-toolbar--vertical[data-sui-enhanced="toolbar"] > .swift-ui-toolbar-items {
+  flex-direction: column;
+  align-items: stretch;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.swift-ui-toolbar-overflow {
+  position: relative;
+  flex: none;
+}
+
+.swift-ui-toolbar-overflow-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.5rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid rgb(203 213 225);
+  border-radius: 0.625rem;
+  background: white;
+  color: rgb(30 41 59);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+  list-style: none;
+  white-space: nowrap;
+}
+
+.swift-ui-toolbar-overflow-trigger::-webkit-details-marker {
+  display: none;
+}
+
+.swift-ui-toolbar-overflow[open] > .swift-ui-toolbar-overflow-trigger {
+  background: rgb(241 245 249);
+}
+
+.swift-ui-toolbar-overflow-items {
+  position: absolute;
+  z-index: 30;
+  inset-block-start: calc(100% + 0.5rem);
+  inset-inline-end: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  min-width: 13rem;
+  max-width: min(24rem, calc(100vw - 2rem));
+  max-height: min(24rem, calc(100dvh - 2rem));
+  gap: 0.375rem;
+  padding: 0.5rem;
+  overflow: auto;
+  border: 1px solid rgb(203 213 225);
+  border-radius: 0.75rem;
+  background: white;
+  color: rgb(15 23 42);
+  box-shadow: 0 14px 35px rgb(15 23 42 / 0.16);
+}
+
+.swift-ui-toolbar-overflow-items > .swift-ui-toolbar-item,
+.swift-ui-toolbar-overflow-items > .swift-ui-toolbar-item > :is(button, a, input, select, textarea) {
+  width: 100%;
+}
+
+.swift-ui-toolbar-overflow-items > .swift-ui-toolbar-item > :is(button, a) {
+  justify-content: flex-start;
+}
+
+.swift-ui-toolbar--vertical .swift-ui-toolbar-overflow-items {
+  inset-block-start: 0;
+  inset-inline-start: calc(100% + 0.5rem);
+  inset-inline-end: auto;
+}
+
+.swift-ui-toolbar[data-sui-toolbar-minimized="true"] {
+  gap: 0.25rem;
+}
+
+@container (max-width: 24rem) {
+  .swift-ui-toolbar-overflow-trigger {
+    padding-inline: 0.625rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .swift-ui-value-animation {
+    transition-duration: 0.001ms !important;
+    transition-delay: 0s !important;
+  }
 }

@@ -11,13 +11,16 @@ if defined?(ViewComponent::Storybook)
     end
   end
   
-  # Add SwiftUI Rails storybook helpers to all stories
-  ViewComponent::Storybook::Stories.class_eval do
-    include SwiftUIRails::Storybook if defined?(SwiftUIRails::Storybook)
+  # Add the SwiftUI Rails DSL and rendering helpers to all stories. Storybook
+  # itself is a class, so it must not be passed to Ruby's `include`.
+  if defined?(SwiftUIRails::Storybook::Helpers)
+    ViewComponent::Storybook::Stories.include SwiftUIRails::Storybook::Helpers
   end
   
   # Configure preview layouts
   Rails.application.config.to_prepare do
-    ViewComponent::Storybook.stories_layout = "storybook"
+    if ViewComponent::Storybook.respond_to?(:stories_layout=)
+      ViewComponent::Storybook.stories_layout = "storybook"
+    end
   end
 end

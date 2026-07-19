@@ -2,7 +2,7 @@
 
 class <%= component_class_name %> < ApplicationComponent
 <% parsed_props.each do |prop| -%>
-  prop :<%= prop[:name] %>, type: <%= prop[:type] %>
+  prop :<%= prop[:name] %>, type: <%= prop[:type] %><%= ", default: #{prop[:default]}" if prop[:default] %>
 <% end -%>
   
   # Define component states
@@ -21,12 +21,12 @@ class <%= component_class_name %> < ApplicationComponent
   swift_ui do
     card(elevation: 1).p(6) do
       vstack(spacing: 16) do
-        text("<%= class_name %>").text_size("xl").font_weight("semibold")
+        text("<%= class_name %>").text_style(:title)
         
         # Add your component layout here
         # Example:
         # hstack(spacing: 12) do
-        #   icon(:star, size: 24).text_color("yellow-500")
+        #   icon(:star, size: 24).foreground_style(:accent)
         #   text("Component content")
         # end
       end
