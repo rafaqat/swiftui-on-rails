@@ -4,7 +4,7 @@ class ProductLayoutComponent < ApplicationComponent
   # Main props - accepts Rails AR objects or hashes
   prop :products, type: Array, required: true
   prop :title, type: String, default: "Products"
-  prop :columns, type: Integer, default: 4 # 1, 2, 3, 4, 6
+  prop :columns, type: [Integer, Hash], default: 4 # fixed or responsive columns
   prop :gap, type: Integer, default: 6
   
   # Filter options
@@ -34,10 +34,12 @@ class ProductLayoutComponent < ApplicationComponent
   ]
   
   swift_ui do
+    comp = @component
+
     section.bg("gray-50").min_h("screen") do
       div.max_w("7xl").mx("auto").px(4).py(8).add_class("sm:px-6 lg:px-8") do
         # Header with title and sort
-        if title.present? || show_sort || header_actions?
+        if title.present? || show_sort || comp.header_actions?
           hstack(alignment: :center).mb(8) do
             if title.present?
               vstack(alignment: :start, spacing: 2) do
@@ -60,8 +62,8 @@ class ProductLayoutComponent < ApplicationComponent
             end
             
             # Custom header actions slot
-            if header_actions?
-              div.ml(4) { header_actions }
+            if comp.header_actions?
+              div.ml(4) { comp.header_actions }
             end
           end
         end
@@ -70,7 +72,7 @@ class ProductLayoutComponent < ApplicationComponent
         if show_filters && filter_position == "top"
           # Top filters layout
           vstack(spacing: 6) do
-            render_top_filters if filters?
+            render_top_filters if comp.filters?
             # Inline the grid rendering to ensure it's in DSL context
             Rails.logger.debug "ProductLayoutComponent: Calling grid with columns: #{columns}, gap: #{gap}"
             grid(columns: columns, spacing: gap) do
@@ -95,9 +97,9 @@ class ProductLayoutComponent < ApplicationComponent
           # Sidebar layout
           hstack(spacing: 8, alignment: :start) do
             # Filters sidebar
-            if filters?
+            if comp.filters?
               div.w(64).flex_shrink(0) do
-                div.sticky.top(8) { filters }
+                div.sticky.top(8) { comp.filters }
               end
             end
             
@@ -191,8 +193,8 @@ class ProductLayoutComponent < ApplicationComponent
         end
         
         # Footer slot
-        if footer?
-          div.mt(12) { footer }
+        if comp.footer?
+          div.mt(12) { comp.footer }
         end
       end
     end
@@ -216,7 +218,7 @@ class ProductLayoutComponent < ApplicationComponent
   
   def render_top_filters
     div.bg("white").p(6).rounded("lg").shadow("sm").border.border_color("gray-200") do
-      filters
+      self.filters
     end
   end
   

@@ -20,23 +20,25 @@ class SimpleCardComponent < SwiftUIRails::Component::Base
   }.freeze
   
   swift_ui do
+    comp = @component
+
     div.tw(card_classes) do
       # Header
-      if header?
+      if comp.header?
         div.pb(4).mb(4).border_b.border_color("gray-200") do
-          header
+          comp.header
         end
       end
       
       # Content (from block)
       div do
-        content
+        comp.content
       end
       
       # Footer
-      if footer?
+      if comp.footer?
         div.pt(4).mt(4).border_t.border_color("gray-200") do
-          footer
+          comp.footer
         end
       end
     end

@@ -10,65 +10,32 @@ class ModalComponent < SwiftUIRails::Component::Base
   renders_one :footer
   
   swift_ui do
-    if open
-      div(
-        id: "modal-backdrop",
-        data: { 
-          turbo_permanent: true,
-          controller: "modal",
-          action: "keydown.esc->modal#close click->modal#closeOnBackdrop"
-        }
+    comp = @component
+
+    if comp.open
+      sheet(
+        comp.title,
+        presented: true,
+        id: "modal",
+        dismiss_path: comp.close_path,
+        dismiss_label: "Close"
       ) do
-        # Backdrop - clicking closes modal
-        link("", destination: close_path, data: { modal_target: "backdrop" })
-          .fixed
-          .inset(0)
-          .background("black")
-          .opacity(50)
-          .z(40)
-        
-        # Modal container
-        div(role: "dialog", aria: { modal: true, labelledby: "modal-title" }) do
-          vstack(spacing: 0) do
-            # Header
-            div.flex.items_center.justify_between.padding(6).border_b do
-              text(title, id: "modal-title")
-                .text_xl
-                .font_semibold
-                .text_color("gray-900")
-              
-              link(destination: close_path, aria: { label: "Close modal" }) do
-                icon("x", size: 24)
-                  .text_color("gray-400")
-                  .hover_text_color("gray-600")
-              end
-            end
-            
-            # Body
-            div.padding(6) do
-              body || text("Modal content goes here")
-            end
-            
-            # Footer (optional)
-            if footer?
-              div.padding(6).border_t.background("gray-50") do
-                footer
-              end
+        vstack(spacing: 0) do
+          div.padding(6) do
+            comp.body || text("Modal content goes here")
+          end
+
+          if comp.footer?
+            div.padding(6).border_t.background("gray-50") do
+              comp.footer
             end
           end
         end
-        .fixed
-        .top("50%")
-        .left("50%")
-        .transform("translate(-50%, -50%)")
+      end
+        .style("width: #{comp.send(:modal_width)}; max-width: calc(100vw - 2rem); max-height: 90vh; overflow-y: auto")
         .background("white")
         .corner_radius("lg")
         .shadow("xl")
-        .z(50)
-        .width(modal_width)
-        .max_height("90vh")
-        .overflow_y_auto
-      end
     end
   end
   

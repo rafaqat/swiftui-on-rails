@@ -13,7 +13,6 @@ class SimpleReactiveTest < ViewComponent::TestCase
   
   def test_simple_component_renders
     render_inline(SimpleComponent.new(title: "Test"))
-    puts page.native.to_html # Debug output
     assert_text "Test"
   end
 end

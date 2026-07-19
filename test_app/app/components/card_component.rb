@@ -1,6 +1,16 @@
 # frozen_string_literal: true
 
 class CardComponent < SwiftUIRails::Component::Base
+  # Constants for repeated values
+  SIZE_SM = "sm"
+  SIZE_LG = "lg"
+  SIZE_XS = "xs"
+  STYLE_PRIMARY = :primary
+  STYLE_SECONDARY = :secondary
+  DEFAULT_PADDING = "16"
+  DEFAULT_CORNER_RADIUS = SIZE_LG
+  DEFAULT_BG_COLOR = "white"
+  
   # ViewComponent 2.0 Collection Support
   prop :collection_item, type: Object, default: nil
   prop :collection_counter, type: Integer, default: nil
@@ -9,9 +19,9 @@ class CardComponent < SwiftUIRails::Component::Base
   prop :title, type: String, default: "Card Title"
   prop :content, type: String, default: "This is a sample card content. Cards are great for organizing related information and creating visual hierarchy."
   prop :elevation, type: Integer, default: 1
-  prop :padding, type: String, default: "16"
-  prop :corner_radius, type: String, default: "lg"
-  prop :background_color, type: String, default: "white"
+  prop :padding, type: String, default: DEFAULT_PADDING
+  prop :corner_radius, type: String, default: DEFAULT_CORNER_RADIUS
+  prop :background_color, type: String, default: DEFAULT_BG_COLOR
   prop :border, type: [TrueClass, FalseClass], default: false
   prop :hover_effect, type: [TrueClass, FalseClass], default: false
   
@@ -33,17 +43,17 @@ class CardComponent < SwiftUIRails::Component::Base
       vstack(spacing: 0) do
         # ViewComponent 2.0 Header Slot
         if header
-          div(class: "card-header") do
+          div(data: { card_header: true }) do
             header
           end
           .padding(16)
-          .border_bottom
+          .border_b
         else
           # Default header content
-          div(class: "card-header") do
+          div(data: { card_header: true }) do
             hstack do
               text(card_title)
-                .font_size("lg")
+                .font_size(SIZE_LG)
                 .font_weight("semibold")
                 .text_color("gray-900")
                 
@@ -57,7 +67,7 @@ class CardComponent < SwiftUIRails::Component::Base
                   .padding_x(2)
                   .padding_y(1)
                   .corner_radius("full")
-                  .font_size("xs")
+                  .font_size(SIZE_XS)
               end
             end
           end
@@ -66,13 +76,13 @@ class CardComponent < SwiftUIRails::Component::Base
         
         # ViewComponent 2.0 Media Slot
         if media
-          div(class: "card-media") do
+          div(data: { card_media: true }) do
             media
           end
         end
         
         # Main content
-        div(class: "card-content") do
+        div(data: { card_content: true }) do
           text(card_content)
             .text_color("gray-600")
             .line_clamp(3)
@@ -81,7 +91,7 @@ class CardComponent < SwiftUIRails::Component::Base
         
         # ViewComponent 2.0 Actions Slot (renders_many)
         if actions.any?
-          div(class: "card-actions") do
+          div(data: { card_actions: true }) do
             hstack(spacing: 8) do
               actions.each do |action|
                 action
@@ -89,39 +99,39 @@ class CardComponent < SwiftUIRails::Component::Base
             end
           end
           .padding(16)
-          .border_top
+          .border_t
         else
           # Default actions
-          div(class: "card-actions") do
+          div(data: { card_actions: true }) do
             hstack(spacing: 8) do
               button("Primary Action")
-                .button_style(:primary)
-                .button_size(:sm)
+                .button_style(STYLE_PRIMARY)
+                .button_size(SIZE_SM)
               
               button("Secondary")
-                .button_style(:secondary)
-                .button_size(:sm)
+                .button_style(STYLE_SECONDARY)
+                .button_size(SIZE_SM)
             end
           end
           .padding(16)
-          .border_top
+          .border_t
         end
         
         # ViewComponent 2.0 Footer Slot
         if footer
-          div(class: "card-footer") do
+          div(data: { card_footer: true }) do
             footer
           end
           .padding(16)
-          .border_top
+          .border_t
         end
       end
     end
     
     # Apply dynamic modifiers with ViewComponent 2.0 performance
-    card_element = card_element.padding(padding.to_i) if padding.present? && padding != "16"
-    card_element = card_element.corner_radius(corner_radius) if corner_radius != "lg"
-    card_element = card_element.background(background_color) if background_color != "white"
+    card_element = card_element.padding(padding.to_i) if padding.present? && padding != DEFAULT_PADDING
+    card_element = card_element.corner_radius(corner_radius) if corner_radius != DEFAULT_CORNER_RADIUS
+    card_element = card_element.background(background_color) if background_color != DEFAULT_BG_COLOR
     card_element = card_element.border if border
     card_element = card_element.hover_scale("105") if hover_effect
     

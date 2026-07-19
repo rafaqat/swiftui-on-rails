@@ -60,7 +60,7 @@ class EnhancedRegisterComponent < ApplicationComponent
         end
         
         # Form
-        form(action: action, method: method, data: { turbo: false }) do
+        form(action: component.action, method: component.method, data: { turbo: false }) do
           div.space_y(6) do
             # Name Field
             div do

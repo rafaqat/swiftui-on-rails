@@ -99,7 +99,7 @@ class DslProductCardStories < ViewComponent::Storybook::Stories
     
     content_tag(:div, class: "p-8 bg-gray-50 min-h-screen") do
       swift_ui do
-        grid(cols: 2, gap: 6) do
+        grid(columns: 2, spacing: 6) do
           products.each do |product|
             # Each product card using consistent DSL pattern
             card(elevation: elevation) do
@@ -152,7 +152,7 @@ class DslProductCardStories < ViewComponent::Storybook::Stories
             .p(padding)
             .bg(background_color)
           end
-        end.class("md:grid-cols-4")
+        end.tw("md:grid-cols-4")
       end
     end
   end

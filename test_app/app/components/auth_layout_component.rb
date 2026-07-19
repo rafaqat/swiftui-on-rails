@@ -155,7 +155,7 @@ class AuthLayoutComponent < ApplicationComponent
         end
         
         # Card container
-        div.bg("white").shadow("2xl").rounded("xl").overflow_hidden do
+        div.bg("white").shadow("2xl").rounded("xl").overflow("hidden") do
           # Optional header
           if header?
             div.bg("gray-50").px(8).py(6).border_b.border_color("gray-200") do

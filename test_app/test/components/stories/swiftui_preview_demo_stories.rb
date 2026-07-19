@@ -192,8 +192,6 @@ class SwiftuiPreviewDemoStories < SwiftUIRails::Storybook
               .rounded("md")
               .hover("bg-blue-700")
               .transition
-              .stimulus_controller("project-form")
-              .stimulus_action("click->project-form#submit")
           end
         end
       end

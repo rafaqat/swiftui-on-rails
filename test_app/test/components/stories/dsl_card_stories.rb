@@ -62,8 +62,6 @@ class DslCardStories < ViewComponent::Storybook::Stories
                   .rounded("md")
                   .hover("bg-blue-700")
                   .transition
-                  .stimulus_controller("card-action")
-                  .stimulus_action("click->card-action#learnMore")
                 
                 button("Dismiss")
                   .bg("gray-200")
@@ -116,7 +114,18 @@ class DslCardStories < ViewComponent::Storybook::Stories
               end
             
             # Interactive card
-            div
+            div do
+              vstack(spacing: 4, alignment: :start) do
+                text("Interactive Card")
+                  .font_size("lg")
+                  .font_weight("semibold")
+                  .text_color("blue-900")
+
+                text("Application behavior is declared as a Ruby action")
+                  .text_color("blue-600")
+                  .text_size("sm")
+              end
+            end
               .bg("blue-50")
               .border
               .border_color("blue-200")
@@ -126,19 +135,6 @@ class DslCardStories < ViewComponent::Storybook::Stories
               .hover("bg-blue-100")
               .cursor("pointer")
               .transition
-              .stimulus_controller("interactive-card")
-              .stimulus_action("click->interactive-card#handleClick") do
-                vstack(spacing: 4, alignment: :start) do
-                  text("Interactive Card")
-                    .font_size("lg")
-                    .font_weight("semibold")
-                    .text_color("blue-900")
-                  
-                  text("Click me for interaction")
-                    .text_color("blue-600")
-                    .text_size("sm")
-                end
-              end
             
             # Feature card
             div

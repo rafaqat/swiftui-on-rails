@@ -2,6 +2,10 @@
 
 class ProductCardComponent < ApplicationComponent
   include SwiftUIRails::Helpers
+  include SwiftUIRails::Security::ComponentValidator
+  
+  VALID_ASPECT_RATIOS = %w[square auto 1/1 3/2 4/3 5/4 16/9 16/10 21/9].freeze
+  
   # Product data
   prop :product, type: Hash, required: true
   prop :index, type: Integer, default: 0
@@ -12,62 +16,27 @@ class ProductCardComponent < ApplicationComponent
   prop :show_quick_actions, type: [TrueClass, FalseClass], default: true
   prop :image_aspect_ratio, type: String, default: "square"
   
+  # Add validation
+  validates_inclusion :image_aspect_ratio, in: VALID_ASPECT_RATIOS
+  
   # Action handlers
   prop :on_click, type: Proc, default: nil
   prop :on_add_to_cart, type: Proc, default: nil
   prop :on_variant_select, type: Proc, default: nil
   prop :on_quick_view, type: Proc, default: nil
   
+  # Validate callable props
+  validates_callable :on_click
+  validates_callable :on_add_to_cart
+  validates_callable :on_variant_select
+  validates_callable :on_quick_view
+  
   swift_ui do
     div do
       # Product Image with overlay actions
       div.relative do
-        # Main product image
-        if product[:image_url].present?
-          img = image(src: product[:image_url], alt: product[:name])
-            .w("full")
-            .rounded("md")
-            .bg("gray-200")
-            .object("cover")
-            .group_hover("opacity-75")
-          
-          # Apply aspect ratio
-          case image_aspect_ratio
-          when "square"
-            img.aspect("square")
-          when "auto"
-            img.aspect("auto").lg("h-80")
-          else
-            img.aspect(image_aspect_ratio)
-          end
-          
-          img
-        else
-          # Placeholder
-          placeholder = div do
-            text("No Image")
-              .text_color("gray-400")
-              .text_size("sm")
-          end
-          .w("full")
-          .rounded("md")
-          .bg("gray-200")
-          .flex
-          .items_center
-          .justify_center
-          
-          # Apply aspect ratio
-          case image_aspect_ratio
-          when "square"
-            placeholder.aspect("square")
-          when "auto"
-            placeholder.aspect("auto").lg("h-80")
-          else
-            placeholder.aspect(image_aspect_ratio)
-          end
-          
-          placeholder
-        end
+        # Render product image or placeholder
+        render_product_image
         
         # Out of stock badge
         if product[:in_stock] == false
@@ -170,8 +139,52 @@ class ProductCardComponent < ApplicationComponent
     .group
     .relative
     .data(
-      "product-id": product[:id],
+      "product-id": product[:id] || "unknown",
       "product-index": index
     )
+  end
+  
+  private
+  
+  def render_product_image
+    if product[:image_url].present?
+      img = image(src: product[:image_url], alt: product[:name])
+        .w("full")
+        .rounded("md")
+        .bg("gray-200")
+        .object("cover")
+        .group_hover("opacity-75")
+      
+      apply_aspect_ratio(img)
+    else
+      render_image_placeholder
+    end
+  end
+  
+  def render_image_placeholder
+    placeholder = div do
+      text("No Image")
+        .text_color("gray-400")
+        .text_size("sm")
+    end
+    .w("full")
+    .rounded("md")
+    .bg("gray-200")
+    .flex
+    .items_center
+    .justify_center
+    
+    apply_aspect_ratio(placeholder)
+  end
+  
+  def apply_aspect_ratio(element)
+    case image_aspect_ratio
+    when "square"
+      element.aspect("square")
+    when "auto"
+      element.aspect("auto").lg("h-80")
+    else
+      element.aspect(image_aspect_ratio)
+    end
   end
 end

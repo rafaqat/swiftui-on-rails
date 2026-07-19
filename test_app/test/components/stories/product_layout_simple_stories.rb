@@ -130,10 +130,10 @@ class ProductLayoutSimpleStories < ViewComponent::Storybook::Stories
                 .block.w("full").pl(3).pr(10).py(2)
                 .text_size("base").border("gray-300").rounded("md")
                 .add_class("focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm") do
-                option("Most Popular", value: "popular")
-                option("Newest", value: "newest")
-                option("Price: Low to High", value: "price_asc")
-                option("Price: High to Low", value: "price_desc")
+                option("popular", "Most Popular")
+                option("newest", "Newest")
+                option("price_asc", "Price: Low to High")
+                option("price_desc", "Price: High to Low")
               end
             end
           end

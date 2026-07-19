@@ -8,11 +8,6 @@ class CounterComponentTest < ViewComponent::TestCase
   def test_renders_with_default_props
     render_inline(CounterComponent.new)
     
-    # Debug output
-    puts "=== Rendered HTML ==="
-    puts page.native.to_html
-    puts "===================="
-    
     assert_text "Counter: 0"
     assert_text "0" # The large count display
     assert_selector "button", text: "-"
@@ -31,29 +26,22 @@ class CounterComponentTest < ViewComponent::TestCase
     assert_text "10"
   end
   
-  def test_state_management
-    component = CounterComponent.new(initial_count: 5)
-    
-    # Test initial state
+  def test_exposes_configuration_as_props_and_server_state
+    component = CounterComponent.new(initial_count: 5, step: 2, label: "Cart")
+
+    assert_equal 5, component.initial_count
+    assert_equal 2, component.step
+    assert_equal "Cart", component.label
     assert_equal 5, component.count
-    assert_equal [], component.history
-    
-    # Test state mutation
-    component.count = 10
-    assert_equal 10, component.count
-    assert_equal 1, component.history.length
-    assert_equal({ from: 5, to: 10 }, component.history.first.slice(:from, :to))
+    assert_respond_to component, :count=
   end
   
-  def test_computed_properties
-    component = CounterComponent.new(initial_count: 5, label: "Test")
-    
-    assert component.is_positive
-    assert_equal "Test: 5", component.count_display
-    
-    component.count = -3
-    refute component.is_positive
-    assert_equal "Test: -3", component.count_display
+  def test_generates_a_unique_dom_id_by_default
+    first = CounterComponent.new
+    second = CounterComponent.new
+
+    assert_match(/\Acounter-[0-9a-f]{8}\z/, first.counter_id)
+    refute_equal first.counter_id, second.counter_id
   end
   
   def test_observed_object_store
@@ -75,39 +63,26 @@ class CounterComponentTest < ViewComponent::TestCase
     assert_equal "Test", store.get(:name)
   end
   
-  def test_binding_value_wrapper
-    component = CounterComponent.new
-    
-    # Test binding getter/setter
-    if component.respond_to?(:shared_count)
-      binding = component.shared_count
-      assert_kind_of SwiftUIRails::Reactive::BindingValue, binding
-      
-      # Test value access
-      binding.value = 42
-      assert_equal 42, binding.value
-    end
+  def test_wires_signed_ruby_actions_and_semantic_markers
+    render_inline(CounterComponent.new)
+
+    assert_selector "[data-counter-label='true']"
+    assert_selector "[data-counter-display='true']"
+    assert_selector "button[data-sui-actions]", count: 3
+    assert_no_selector "[data-controller], [data-action]"
   end
   
-  def test_reactive_rendering_wrapper
-    render_inline(CounterComponent.new)
-    
-    # Check for reactive wrapper
-    assert_selector "[data-swift-ui-reactive='true']"
-    assert_selector "[data-controller='swift-ui-reactive']"
+  def test_places_initial_state_in_the_encrypted_component_snapshot
+    render_inline(CounterComponent.new(initial_count: 7, step: 3, label: "Items"))
+
+    assert_selector "[data-sui-root='1'] [data-counter='true']"
+    assert_selector "[data-sui-snapshot]"
+    assert_text "Items: 7"
   end
   
-  def test_debug_panel_in_development
-    # Temporarily enable debug mode
-    CounterComponent.state_debugging_enabled = true
-    
+  def test_does_not_emit_a_second_client_state_model
     render_inline(CounterComponent.new)
-    
-    # Check for debug elements
-    assert_selector ".swift-ui-debug-trigger"
-    assert_selector ".swift-ui-debug-panel"
-    
-  ensure
-    CounterComponent.state_debugging_enabled = false
+
+    assert_no_selector "[data-controller], [data-action], [data-counter-target]"
   end
 end

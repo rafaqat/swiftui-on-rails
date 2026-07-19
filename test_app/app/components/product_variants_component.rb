@@ -1,10 +1,12 @@
 # frozen_string_literal: true
 
-class ProductVariantsComponent < ApplicationComponent
+class ProductVariantsComponent < SwiftUIRails::Component::Base
   prop :variants, type: Array, required: true
   prop :selected_variant, type: [Hash, NilClass], default: nil
   prop :on_select, type: Proc, default: nil
   prop :display_style, type: Symbol, default: :auto # :auto, :dropdown, :buttons, :swatches
+
+  state :active_variant, -> { (selected_variant || {}).deep_stringify_keys }, type: Hash
   
   swift_ui do
     create_element(:div, nil, {class: "flex flex-col items-center space-y-2 mt-2"}) do
@@ -17,21 +19,21 @@ class ProductVariantsComponent < ApplicationComponent
           # Color swatches
           hstack(spacing: 1).tw("flex-wrap") do
             variant_options.each do |variant|
-              button("") # Empty content for color swatch
+              variant_button = button("") # Empty content for color swatch
                 .w(6)
                 .h(6)
                 .rounded("full")
                 .border(2)
                 .border_color(variant_selected?(variant) ? "gray-900" : "gray-300")
-                .tw("ring-2 ring-gray-900")
-                .tw(variant_selected?(variant) ? "ring-opacity-100" : "ring-opacity-0")
+                .tw("ring-2")
+                .tw(variant_selected?(variant) ? "ring-gray-900" : "ring-transparent")
                 .tw("ring-offset-1")
                 .transition
                 .tw("duration-200")
                 .style("background-color: #{variant[:hex_color] || variant[:value]}")
-                .data(action: "click->product-variants#selectVariant")
                 .data("variant-data": variant.to_json)
                 .attr("title", variant[:label] || variant[:value])
+              variant_button.on_click { select_variant(variant) }
             end
           end
           
@@ -50,13 +52,11 @@ class ProductVariantsComponent < ApplicationComponent
               end
               
               if variant[:available] != false
-                btn_attrs[:data] = {
-                  action: "click->product-variants#selectVariant",
-                  "variant-data": variant.to_json
-                }
+                btn_attrs[:data] = { "variant-data": variant.to_json }
               end
-              
-              button(variant[:label] || variant[:value], **btn_attrs)
+
+              variant_button = button(variant[:label] || variant[:value], **btn_attrs)
+              variant_button.on_click { select_variant(variant) } if variant[:available] != false
             end
           end
           
@@ -75,13 +75,11 @@ class ProductVariantsComponent < ApplicationComponent
               end
               
               if variant[:available] != false
-                btn_attrs[:data] = {
-                  action: "click->product-variants#selectVariant",
-                  "variant-data": variant.to_json
-                }
+                btn_attrs[:data] = { "variant-data": variant.to_json }
               end
-              
-              button(variant[:label] || variant[:value], **btn_attrs)
+
+              variant_button = button(variant[:label] || variant[:value], **btn_attrs)
+              variant_button.on_click { select_variant(variant) } if variant[:available] != false
             end
           end
         end
@@ -103,9 +101,16 @@ class ProductVariantsComponent < ApplicationComponent
   end
   
   def variant_selected?(variant)
-    return false unless selected_variant
-    
-    selected_variant[:id] == variant[:id] || 
-    (selected_variant[:type] == variant[:type] && selected_variant[:value] == variant[:value])
+    selected = active_variant.stringify_keys
+    candidate = variant.stringify_keys
+    return false if selected.empty?
+
+    selected["id"] == candidate["id"] ||
+      (selected["type"] == candidate["type"] && selected["value"] == candidate["value"])
+  end
+
+  def select_variant(variant)
+    self.active_variant = variant.deep_stringify_keys
+    on_select.call(variant) if on_select.respond_to?(:call)
   end
 end

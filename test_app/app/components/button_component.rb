@@ -1,5 +1,15 @@
 # frozen_string_literal: true
 
-# ButtonComponent is now an alias to SimpleButtonComponent for DRY principle
-# This ensures backwards compatibility while maintaining a single implementation
-ButtonComponent = SimpleButtonComponent
+# @deprecated Use SimpleButtonComponent instead
+# This alias will be removed in version 2.0
+# ButtonComponent is maintained for backwards compatibility
+class ButtonComponent < SimpleButtonComponent
+  def initialize(...)
+    Rails.deprecator.warn(
+      "ButtonComponent is deprecated and will be removed in SwiftUIRails 2.0. " \
+      "Please use SimpleButtonComponent instead.",
+      caller_locations(1)
+    )
+    super
+  end
+end

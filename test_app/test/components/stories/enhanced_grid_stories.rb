@@ -202,7 +202,7 @@ class EnhancedGridStories < ViewComponent::Storybook::Stories
             # Make some items featured (2x2)
             if [1, 4].include?(i)
               div.col_span(2).row_span(2) do
-                card.p(8).h("full").bg("gradient-to-br from-purple-500 to-pink-500") do
+                card.p(8).h("full").tw("bg-gradient-to-br from-purple-500 to-pink-500") do
                   vstack(spacing: 4, alignment: :center) do
                     text("FEATURED").text_color("white").font_weight("bold")
                     

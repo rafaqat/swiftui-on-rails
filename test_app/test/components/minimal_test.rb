@@ -36,7 +36,6 @@ class MinimalTest < ViewComponent::TestCase
   
   def test_swift_ui_component
     render_inline(SwiftUIComponent.new)
-    puts "SwiftUI component HTML: #{page.native.to_html}"
     assert_text "Swift UI Component"
   end
 end

@@ -18,10 +18,6 @@ class DslButtonStories < ViewComponent::Storybook::Stories
   control :rounded, as: :select, options: ["none", "sm", "md", "lg", "xl", "full"], default: "md"
   control :disabled, as: :boolean, default: false
   
-  # Powerful properties
-  control :stimulus_controller, as: :text, default: ""
-  control :stimulus_action, as: :text, default: ""
-  control :stimulus_target, as: :text, default: ""
   control :aria_label, as: :text, default: ""
   control :hover_effect, as: :select, options: [
     "none", "opacity-90", "scale-105", "shadow-lg", "brightness-110"
@@ -38,9 +34,6 @@ class DslButtonStories < ViewComponent::Storybook::Stories
     size: "md",
     rounded: "md",
     disabled: false,
-    stimulus_controller: "",
-    stimulus_action: "",
-    stimulus_target: "",
     aria_label: "",
     hover_effect: "opacity-90",
     focus_ring_color: "blue-500",
@@ -82,11 +75,6 @@ class DslButtonStories < ViewComponent::Storybook::Stories
             
             # Apply transition
             btn = btn.transition if transition_enabled
-            
-            # Apply Stimulus properties if provided
-            btn = btn.stimulus_controller(stimulus_controller) if stimulus_controller.present?
-            btn = btn.stimulus_action(stimulus_action) if stimulus_action.present?
-            btn = btn.stimulus_target(stimulus_target) if stimulus_target.present?
             
             # Apply aria label if provided
             btn = btn.aria_label(aria_label) if aria_label.present?
@@ -155,7 +143,7 @@ class DslButtonStories < ViewComponent::Storybook::Stories
             end
             
             # Interactive properties
-            if stimulus_controller.present? || stimulus_action.present? || stimulus_target.present? || aria_label.present?
+            if aria_label.present?
               div(class: "bg-blue-50 p-4 rounded-lg w-full") do
                 vstack(spacing: 8, alignment: :start) do
                   text("Interactive Properties")
@@ -164,24 +152,6 @@ class DslButtonStories < ViewComponent::Storybook::Stories
                     .margin_bottom(2)
                   
                   vstack(spacing: 3, alignment: :start) do
-                    if stimulus_controller.present?
-                      hstack(spacing: 2) do
-                        text("Stimulus Controller:").text_size("sm").font_weight("medium").text_color("gray-600")
-                        text(stimulus_controller.to_s).text_size("sm").text_color("gray-900").tw("font-mono")
-                      end
-                    end
-                    if stimulus_action.present?
-                      hstack(spacing: 2) do
-                        text("Stimulus Action:").text_size("sm").font_weight("medium").text_color("gray-600")
-                        text(stimulus_action.to_s).text_size("sm").text_color("gray-900").tw("font-mono")
-                      end
-                    end
-                    if stimulus_target.present?
-                      hstack(spacing: 2) do
-                        text("Stimulus Target:").text_size("sm").font_weight("medium").text_color("gray-600")
-                        text(stimulus_target.to_s).text_size("sm").text_color("gray-900").tw("font-mono")
-                      end
-                    end
                     if aria_label.present?
                       hstack(spacing: 2) do
                         text("ARIA Label:").text_size("sm").font_weight("medium").text_color("gray-600")
@@ -196,22 +166,22 @@ class DslButtonStories < ViewComponent::Storybook::Stories
             # Usage examples
             div(class: "bg-purple-50 p-4 rounded-lg w-full") do
               vstack(spacing: 4, alignment: :start) do
-                text("Example Stimulus Usage:")
+                text("Ruby / RenderIR action model:")
                   .font_weight("medium")
                   .text_color("purple-800")
                   .margin_bottom(2)
                 
-                text("Controller: \"counter\"")
+                text("state :count, 0, type: Integer")
                   .text_size("sm")
                   .tw("font-mono")
                   .text_color("purple-700")
                 
-                text("Action: \"click->counter#increment\"")
+                text('button("Increase").on_click { component.count += 1 }')
                   .text_size("sm")
                   .tw("font-mono")
                   .text_color("purple-700")
                 
-                text("Target: \"counterButton\"")
+                text("No application JavaScript, targets, or DOM mutation")
                   .text_size("sm")
                   .tw("font-mono")
                   .text_color("purple-700")
@@ -238,7 +208,9 @@ class DslButtonStories < ViewComponent::Storybook::Stories
         .tw("font-mono")
     end
   end
-  
+
+  public
+
   def interactive_showcase
     content_tag(:div, class: "p-8") do
       swift_ui do
@@ -283,30 +255,16 @@ class DslButtonStories < ViewComponent::Storybook::Stories
             end
           end
           
-          # Stimulus integration demo
+          # Application behavior stays in Ruby and RenderIR.
           vstack(spacing: 8, alignment: :start) do
-            text("Stimulus Integration")
+            text("Ruby Action Model")
               .font_size("lg")
               .font_weight("semibold")
               .text_color("gray-800")
             
-            hstack(spacing: 4) do
-              button("Counter")
-                .bg("red-600")
-                .text_color("white")
-                .px(4).py(2)
-                .rounded("md")
-                .stimulus_controller("counter")
-                .stimulus_action("click->counter#increment")
-                .stimulus_target("counterButton")
-              
-              div
-                .text_color("gray-700")
-                .stimulus_controller("counter")
-                .stimulus_target("counterValue") do
-                  text("Clicks: 0")
-                end
-            end
+            text("Buttons declare Ruby actions; the framework runtime only transports the event and applies RenderIR patches.")
+              .text_size("sm")
+              .text_color("gray-600")
           end
           
           # Responsive design demo

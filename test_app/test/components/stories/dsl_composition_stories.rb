@@ -117,9 +117,6 @@ class DslCompositionStories < ViewComponent::Storybook::Stories
                           .rounded("md")
                           .hover("bg-blue-700")
                           .transition
-                          .stimulus_controller("cart")
-                          .stimulus_action("click->cart#add")
-                          .stimulus_param("product-id", product[:id])
                         
                         button("View")
                           .bg("gray-100")
@@ -176,9 +173,6 @@ class DslCompositionStories < ViewComponent::Storybook::Stories
                         .hover("bg-blue-700")
                         .transition
                         .w_full
-                        .stimulus_controller("cart")
-                        .stimulus_action("click->cart#add")
-                        .stimulus_param("product-id", product[:id])
                     end
                   end
                 end
@@ -199,7 +193,7 @@ class DslCompositionStories < ViewComponent::Storybook::Stories
             .font_weight("bold")
             .text_color("gray-900")
           
-          # Simple button - structure only, behavior via Stimulus
+          # Application behavior is declared through Ruby component actions.
           button("Simple Button")
             .bg("blue-600")
             .text_color("white")
@@ -207,8 +201,6 @@ class DslCompositionStories < ViewComponent::Storybook::Stories
             .rounded("md")
             .hover("bg-blue-700")
             .transition
-            .stimulus_controller("example")
-            .stimulus_action("click->example#handleClick")
           
           # Button with icon composition
           button do

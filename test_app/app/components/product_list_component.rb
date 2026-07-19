@@ -71,7 +71,7 @@ class ProductListComponent < ApplicationComponent
                   src: product_image_url(product),
                   alt: product_alt_text(product)
                 )
-                .aspect(ASPECT_CONFIGS[image_aspect.to_sym] || "square")
+                .tw(ASPECT_CONFIGS[image_aspect.to_sym] || ASPECT_CONFIGS[:square])
                 .w_full
                 .rounded("md")
                 .bg("gray-200")

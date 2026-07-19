@@ -65,28 +65,29 @@ class ProductLayoutComponentUsageTest < ActiveSupport::TestCase
   test "supports custom slots" do
     products = [{ id: 1, name: "Test Product", price: 99.99 }]
     
-    component = ProductLayoutComponent.new(products: products) do |c|
+    component = ProductLayoutComponent.new(products: products)
+    view = vc_test_controller.view_context
+
+    render_inline(component) do |c|
       # Custom header actions
       c.with_header_actions do
-        tag.button("Export CSV", class: "btn btn-secondary")
+        view.tag.button("Export CSV", class: "btn btn-secondary")
       end
       
       # Custom filters
       c.with_filters do
-        tag.div(class: "custom-filters") do
-          tag.h3("Custom Filters") +
-          tag.input(type: "text", placeholder: "Search products...")
+        view.tag.div(class: "custom-filters") do
+          view.tag.h3("Custom Filters") +
+          view.tag.input(type: "text", placeholder: "Search products...")
         end
       end
       
       # Custom footer
       c.with_footer do
-        tag.div("Showing 1 of 100 products", class: "text-gray-600")
+        view.tag.div("Showing 1 of 100 products", class: "text-gray-600")
       end
     end
-    
-    render_inline(component)
-    
+
     assert_selector "button", text: "Export CSV"
     assert_selector "h3", text: "Custom Filters"
     assert_text "Showing 1 of 100 products"
@@ -100,7 +101,7 @@ class ProductLayoutComponentUsageTest < ActiveSupport::TestCase
       price: 49.99,
       photo: OpenStruct.new(
         attached?: true,
-        url: "https://example.com/photo.jpg"
+        url: "https://picsum.photos/400/400"
       )
     )
     
@@ -112,6 +113,6 @@ class ProductLayoutComponentUsageTest < ActiveSupport::TestCase
     
     render_inline(component)
     
-    assert_selector "img[src='https://example.com/photo.jpg']"
+    assert_selector "img[src='https://picsum.photos/400/400']"
   end
 end

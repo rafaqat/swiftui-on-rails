@@ -17,8 +17,6 @@ class ButtonPreviewStories < SwiftUIRails::Storybook
         .rounded("md")
         .hover("bg-blue-700")
         .transition
-        .stimulus_controller("button")
-        .stimulus_action("click->button#handleClick")
     end
     
     scenario "Secondary Button" do
@@ -90,8 +88,6 @@ class ButtonPreviewStories < SwiftUIRails::Storybook
           .rounded("md")
           .hover("bg-blue-700")
           .transition
-          .stimulus_controller("form-submit")
-          .stimulus_action("click->form-submit#submit")
         
         button do
           hstack(spacing: 2, alignment: :center) do
@@ -120,9 +116,6 @@ class ButtonPreviewStories < SwiftUIRails::Storybook
           .rounded("l-md")
           .hover("bg-gray-50")
           .transition
-          .stimulus_controller("view-toggle")
-          .stimulus_action("click->view-toggle#grid")
-          .stimulus_target("gridButton")
         
         button("List View")
           .bg("blue-600")
@@ -133,9 +126,6 @@ class ButtonPreviewStories < SwiftUIRails::Storybook
           .rounded("r-md")
           .hover("bg-blue-700")
           .transition
-          .stimulus_controller("view-toggle")
-          .stimulus_action("click->view-toggle#list")
-          .stimulus_target("listButton")
       end
     end
   end
@@ -208,8 +198,6 @@ class ButtonPreviewStories < SwiftUIRails::Storybook
         .hover("bg-blue-700 shadow-xl scale-110")
         .transition
         .flex.items_center.justify_center
-        .stimulus_controller("fab")
-        .stimulus_action("click->fab#create")
       end
     end
   end

@@ -158,70 +158,32 @@ class EnhancedAuthStories < ViewComponent::Storybook::Stories
   
   def complete_auth_flow
     swift_ui do
-      # Tabs for different states
-      div.data(controller: "tabs") do
-        # Tab navigation
-        div.border_b.border_color("gray-200") do
-          nav.flex.space_x(8).px(4) do
-            button("Login")
-              .px(1)
-              .py(4)
-              .text_size("sm")
-              .font_weight("medium")
-              .border_b(2)
-              .border_color("indigo-500")
-              .text_color("indigo-600")
-              .data(action: "click->tabs#show", "tabs-target": "tab", "tabs-panel": "login")
-            
-            button("Register")
-              .px(1)
-              .py(4)
-              .text_size("sm")
-              .font_weight("medium")
-              .border_b(2)
-              .border_color("transparent")
-              .text_color("gray-500")
-              .hover_text_color("gray-700")
-              .data(action: "click->tabs#show", "tabs-target": "tab", "tabs-panel": "register")
-            
-            button("Error States")
-              .px(1)
-              .py(4)
-              .text_size("sm")
-              .font_weight("medium")
-              .border_b(2)
-              .border_color("transparent")
-              .text_color("gray-500")
-              .hover_text_color("gray-700")
-              .data(action: "click->tabs#show", "tabs-target": "tab", "tabs-panel": "errors")
-          end
-        end
-        
-        # Tab panels
-        div.mt(4) do
-          # Login panel
-          div(data: { "tabs-target": "panel", "tabs-panel-name": "login" }) do
+      tab_view(id: "auth-flow-tabs", label: "Authentication examples", selection: :login) do
+        tab("Login", value: :login) do
+          div.mt(4) do
             render EnhancedLoginComponent.new
           end
-          
-          # Register panel
-          div.hidden(data: { "tabs-target": "panel", "tabs-panel-name": "register" }) do
+        end
+
+        tab("Register", value: :register) do
+          div.mt(4) do
             render EnhancedRegisterComponent.new
           end
-          
-          # Error states panel
-          div.hidden(data: { "tabs-target": "panel", "tabs-panel-name": "errors" }) do
+        end
+
+        tab("Error States", value: :errors) do
+          div.mt(4) do
             div.grid.grid_cols(2).gap(4) do
               div do
                 h4("404 Error").font_weight("semibold").mb(2)
-                div.h(300).overflow_hidden.rounded("lg").border do
+                div.h("[300px]").overflow("hidden").rounded("lg").border do
                   render AuthErrorComponent.new(error_type: :not_found)
                 end
               end
               
               div do
                 h4("401 Unauthorized").font_weight("semibold").mb(2)
-                div.h(300).overflow_hidden.rounded("lg").border do
+                div.h("[300px]").overflow("hidden").rounded("lg").border do
                   render AuthErrorComponent.new(error_type: :unauthorized)
                 end
               end

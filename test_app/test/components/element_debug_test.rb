@@ -21,31 +21,20 @@ class ElementDebugTest < ViewComponent::TestCase
   
   def test_text_only_component
     render_inline(TextOnlyComponent.new)
-    puts "Text only HTML: #{page.native.to_html}"
     assert_text "Hello World"
   end
   
   def test_vstack_component
     render_inline(VStackComponent.new)
-    puts "VStack HTML: #{page.native.to_html}"
     assert_text "Inside vstack"
   end
   
   def test_manual_element_rendering
-    component = TextOnlyComponent.new
-    
-    # Get the swift_ui block
-    block = component.class.instance_variable_get(:@swift_ui_block)
-    
-    # Execute it
-    element = component.instance_eval(&block)
-    puts "Element class: #{element.class}"
-    puts "Element tag: #{element.tag_name}"
-    puts "Element content: #{element.content.inspect}"
-    
-    # Set view context and render
-    element.view_context = component
+    element = SwiftUIRails::DSL::Element.new(:span, "Hello Element")
+    element.view_context = vc_test_controller.view_context
     html = element.to_s
-    puts "Rendered HTML: #{html}"
+
+    assert_equal "span", element.tag_name.to_s
+    assert_includes html, "Hello Element"
   end
 end

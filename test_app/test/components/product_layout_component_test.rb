@@ -30,23 +30,16 @@ class ProductLayoutComponentTest < ViewComponent::TestCase
         id: 1,
         name: "T-Shirt",
         price: 25,
-        variants: [
-          { id: 1, type: "size", value: "s", label: "Small", available: true },
-          { id: 2, type: "size", value: "m", label: "Medium", available: true }
-        ]
+        variant: "Small"
       }
     ]
     
-    component = ProductLayoutComponent.new(
-      products: products,
-      show_variants: true
-    )
+    component = ProductLayoutComponent.new(products: products)
     
     render_inline(component)
     
     assert_text "T-Shirt"
     assert_text "Small"
-    assert_text "Medium"
   end
   
   def test_responsive_columns

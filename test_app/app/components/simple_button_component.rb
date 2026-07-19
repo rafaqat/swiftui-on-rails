@@ -13,6 +13,7 @@ class SimpleButtonComponent < SwiftUIRails::Component::Base
   prop :size, type: Symbol, default: :md
   prop :disabled, type: [TrueClass, FalseClass], default: false
   
+  
   # SwiftUI-style customizable properties
   prop :background_color, type: String, default: nil
   prop :text_color, type: String, default: nil
@@ -52,6 +53,10 @@ class SimpleButtonComponent < SwiftUIRails::Component::Base
     xl: "rounded-xl",
     full: "rounded-full"
   }.freeze
+  
+  # SECURITY: Add prop validations (must come after constants)
+  validates_variant :variant, allowed: VARIANT_CLASSES.keys.map(&:to_s)
+  validates_size :size, allowed: SIZE_PRESETS.keys.map(&:to_s)
   
   swift_ui do
     # Handle ViewComponent 2.0 collection rendering

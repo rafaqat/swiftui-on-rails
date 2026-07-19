@@ -1,9 +1,10 @@
 # frozen_string_literal: true
 
 class AuthFormComponent < SwiftUIRails::Component::Base
+  include SwiftUIRails::Security::FormHelpers
   prop :mode, type: Symbol, default: :login # :login or :register
   prop :action_path, type: String, default: nil
-  prop :logo_url, type: String, default: "https://tailwindcss.com/plus-assets/img/logos/mark.svg?color=indigo&shade=600"
+  prop :logo_url, type: String, default: ENV.fetch("DEFAULT_LOGO_URL", "/assets/logo.svg")
   prop :company_name, type: String, default: "Your Company"
   prop :csrf_token, type: String, default: nil
   
@@ -56,14 +57,10 @@ class AuthFormComponent < SwiftUIRails::Component::Base
       
       # Form section
       div.mt(10).tw("sm:mx-auto sm:w-full sm:max-w-sm") do
-        form(
+        secure_form(
           action: action_path || (mode == :login ? "/login" : "/register"), 
           method: "POST"
         ).tw("space-y-6") do
-          # CSRF token
-          if csrf_token
-            input(type: "hidden", name: "authenticity_token", value: csrf_token)
-          end
           
           # Name fields for registration
           if mode == :register && require_name

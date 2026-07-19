@@ -19,7 +19,7 @@ class TabNavigationComponent < SwiftUIRails::Component::Base
                    selected: is_current,
                    controls: "tabpanel-#{index}"
                  },
-                 data: turbo_frame ? { turbo_frame: turbo_frame } : {})
+                 data: turbo_frame ? { turbo_frame: turbo_frame, turbo_action: "advance" } : {})
               .inline_block
               .padding_x(6)
               .padding_y(3)
@@ -27,9 +27,9 @@ class TabNavigationComponent < SwiftUIRails::Component::Base
               .text_color(is_current ? "blue-600" : "gray-700")
               .font_weight(is_current ? "medium" : "normal")
               .hover_text_color(is_current ? "blue-600" : "gray-900")
-              .border_b(is_current ? "2px solid" : "2px solid transparent")
+              .border_b(2)
               .border_color(is_current ? "blue-600" : "transparent")
-              .transform("translateY(1px)") # Overlap the nav border
+              .translate_y("px") # Overlap the nav border by one pixel
               .transition
           end
         end

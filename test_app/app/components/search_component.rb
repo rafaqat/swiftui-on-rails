@@ -6,20 +6,21 @@ class SearchComponent < SwiftUIRails::Component::Base
   prop :search_path, type: String, required: true
   prop :placeholder, type: String, default: "Search..."
   prop :show_results, type: [TrueClass, FalseClass], default: true
+  prop :search_delay, type: Integer, default: 300 # Configurable delay in ms
   
   swift_ui do
     vstack(spacing: 4) do
       # Search form - works without JS
-      form(action: search_path, method: :get, 
-           data: { turbo_frame: "search_results" }) do
+          form(action: search_path, method: :get,
+           data: { turbo_frame: "search_results", turbo_action: "advance" }) do
         hstack(spacing: 2) do
           div.relative.flex_1 do
             # Search icon
             icon("search", size: 20)
               .absolute
               .left(3)
-              .top("50%")
-              .transform("translateY(-50%)")
+              .top("1/2")
+              .tw("-translate-y-1/2")
               .text_color("gray-400")
             
             # Input field
@@ -27,15 +28,9 @@ class SearchComponent < SwiftUIRails::Component::Base
               name: "q",
               value: query,
               placeholder: placeholder,
-              class: "pl-10 pr-4",
-              data: { 
-                # Progressive enhancement: Live search with Stimulus
-                controller: "search",
-                action: "input->search#debouncedSubmit",
-                search_delay_value: "300"
-              }
+              class: "pl-10 pr-4"
             )
-            .full_width
+            .w_full
           end
           
           button("Search", type: "submit")
@@ -45,12 +40,12 @@ class SearchComponent < SwiftUIRails::Component::Base
       
       # Results in Turbo Frame
       if show_results
-        turbo_frame_tag("search_results") do
+        create_element(:"turbo-frame", nil, id: "search_results") do
           if results.any?
             vstack(spacing: 2) do
               text("Found #{results.count} results").text_sm.text_color("gray-600")
               
-              div.border.corner_radius("lg").overflow_hidden do
+              div.border.corner_radius("lg").tw("overflow-hidden") do
                 results.each_with_index do |result, index|
                   search_result_item(result, index: index)
                 end
@@ -71,7 +66,7 @@ class SearchComponent < SwiftUIRails::Component::Base
   def search_result_item(result, index: 0)
     div(class: index > 0 ? "border-t" : "") do
       link(destination: result[:url] || "#") do
-        div.padding(4).hover_background("gray-50") do
+        div.padding(4).hover_bg("gray-50") do
           vstack(spacing: 1) do
             text(result[:title] || result.to_s)
               .font_weight("medium")
