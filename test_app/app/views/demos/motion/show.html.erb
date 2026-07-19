@@ -1,0 +1,9 @@
+<% content_for :title, "Motion · SwiftUI Rails Demos" %>
+<% content_for :head do %>
+  <%= turbo_refreshes_with method: :morph, scroll: :preserve %>
+  <meta name="view-transition" content="same-origin">
+<% end %>
+
+<%= render layout: "demos/shared/demo_chrome" do %>
+  <%= render Demos::MotionComponent.new(state: @state) %>
+<% end %>

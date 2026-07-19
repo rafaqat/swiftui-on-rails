@@ -1,0 +1,56 @@
+<% content_for :title, "Demos · SwiftUI Rails" %>
+
+<div class="min-h-screen w-full bg-[#f6f3eb] text-slate-950">
+  <header class="relative overflow-hidden border-b border-slate-900/10 bg-slate-950 text-white">
+    <div class="absolute inset-0 opacity-50" aria-hidden="true">
+      <div class="absolute -left-28 top-16 h-80 w-80 rounded-full bg-emerald-500/40 blur-3xl"></div>
+      <div class="absolute -right-20 -top-20 h-96 w-96 rounded-full bg-sky-500/30 blur-3xl"></div>
+    </div>
+
+    <div class="relative mx-auto max-w-7xl px-6 py-16">
+      <p class="text-xs font-black uppercase tracking-[0.34em] text-emerald-300">Interactive demo gallery</p>
+      <h1 class="mt-5 max-w-3xl text-5xl font-black leading-[0.96] tracking-tight sm:text-6xl">
+        One interaction model<br>
+        <span class="bg-gradient-to-r from-emerald-300 via-white to-sky-300 bg-clip-text text-transparent">per demo, on purpose.</span>
+      </h1>
+      <p class="mt-6 max-w-2xl text-lg leading-8 text-slate-300">
+        Every demo commits to one Ruby/RenderIR application model, with URL requests, keyed reactive actions, Turbo Streams, or Action Cable used only as transport.
+      </p>
+      <div class="mt-8 flex flex-wrap gap-3">
+        <%= link_to "Open component lab →", rails_stories_path, class: "rounded-full border border-white/20 bg-white/5 px-6 py-3 text-sm font-black text-white transition hover:border-emerald-300 hover:bg-white/10" %>
+        <%= link_to "Back to showcase", root_path, class: "rounded-full border border-white/20 bg-white/5 px-6 py-3 text-sm font-black text-white transition hover:border-sky-300 hover:bg-white/10" %>
+      </div>
+    </div>
+  </header>
+
+  <div class="mx-auto max-w-7xl px-6 py-14">
+    <div class="mb-6 flex justify-end">
+      <%= render CommandPaletteComponent.new(commands: DemoCatalog.palette_commands(self)) %>
+    </div>
+
+    <nav aria-label="Filter demos by interaction model" class="flex flex-wrap items-center gap-2">
+      <%= link_to "All models", demos_path,
+            class: class_names(
+              "rounded-full px-4 py-2 text-sm font-black transition",
+              @selected_model.nil? ? "bg-slate-950 text-white" : "bg-white text-slate-700 ring-1 ring-slate-900/10 hover:bg-slate-100"
+            ),
+            aria: { current: @selected_model.nil? ? "page" : nil } %>
+      <% DemoCatalog::INTERACTION_MODELS.each do |model, label| %>
+        <%= link_to label, demos_path(model: model),
+              class: class_names(
+                "rounded-full px-4 py-2 text-sm font-black transition",
+                @selected_model == model ? "bg-slate-950 text-white" : "bg-white text-slate-700 ring-1 ring-slate-900/10 hover:bg-slate-100"
+              ),
+              aria: { current: @selected_model == model ? "page" : nil } %>
+      <% end %>
+    </nav>
+
+    <% if @demos.any? %>
+      <div class="mt-10 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+        <%= render DemoCardComponent.with_collection(@demos) %>
+      </div>
+    <% else %>
+      <p class="mt-10 text-lg text-slate-600">No demos use this interaction model yet.</p>
+    <% end %>
+  </div>
+</div>

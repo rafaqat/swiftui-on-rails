@@ -1,0 +1,5 @@
+<% content_for :title, "Dispatch · SwiftUI Rails Demos" %>
+
+<%= render layout: "demos/shared/demo_chrome" do %>
+  <%= render Demos::DispatchComponent.new(stations: @stations, selected: @selected) %>
+<% end %>

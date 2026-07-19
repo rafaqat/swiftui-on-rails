@@ -1,0 +1,5 @@
+<% content_for :title, "Pulse · SwiftUI Rails Demos" %>
+
+<%= render layout: "demos/shared/demo_chrome" do %>
+  <%= render Demos::PulseComponent.new(snapshot: @snapshot) %>
+<% end %>

@@ -1,0 +1,5 @@
+<% content_for :title, "Onboard · SwiftUI Rails Demos" %>
+
+<%= render layout: "demos/shared/demo_chrome" do %>
+  <%= render Demos::OnboardComponent.new(state: @state, step: @step, error: @error) %>
+<% end %>

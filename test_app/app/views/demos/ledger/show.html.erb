@@ -1,0 +1,8 @@
+<% content_for :title, "Ledger · SwiftUI Rails Demos" %>
+<% content_for :head do %>
+  <%= turbo_refreshes_with method: :morph, scroll: :preserve %>
+<% end %>
+
+<%= render layout: "demos/shared/demo_chrome" do %>
+  <%= render Demos::LedgerComponent.new(result: @result) %>
+<% end %>

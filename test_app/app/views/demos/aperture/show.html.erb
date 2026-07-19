@@ -1,0 +1,5 @@
+<% content_for :title, "Aperture · SwiftUI Rails Demos" %>
+
+<%= render layout: "demos/shared/demo_chrome" do %>
+  <%= render Demos::ApertureComponent.new(photos: @photos, active_tag: @active_tag, open_index: @open_index) %>
+<% end %>
