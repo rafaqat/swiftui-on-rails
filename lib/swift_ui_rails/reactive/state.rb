@@ -21,13 +21,18 @@ module SwiftUIRails
         # Define a state variable
         # @state :count, 0
         # @state :user, -> { current_user }
-        def state(name, initial_value = nil, &block)
+        def state(name, initial_value = nil, type: nil, &block)
+          name = name.to_sym
           initial = block || initial_value
           
-          state_definitions[name] = {
-            initial: initial,
-            type: infer_state_type(initial)
-          }
+          self.state_definitions = state_definitions.merge(
+            name => {
+              initial: initial,
+              # Existing Ruby state declarations are dynamically typed. Callers
+              # opt into Swift-like enforcement explicitly with `type:`.
+              type: type
+            }
+          )
           
           # Define getter
           define_method(name) do
@@ -37,8 +42,9 @@ module SwiftUIRails
           
           # Define setter that triggers reactivity
           define_method("#{name}=") do |value|
-            old_value = @state_values[name]
             @state_values ||= {}
+            validate_state_value!(name, value)
+            old_value = @state_values[name]
             @state_values[name] = value
             
             # Track state change for re-rendering
@@ -46,17 +52,18 @@ module SwiftUIRails
           end
           
           # Define mutation methods for arrays/hashes
-          if initial.is_a?(Array) || (initial.is_a?(Proc) && initial.call.is_a?(Array))
+          if initial.is_a?(Array)
             define_array_mutation_methods(name)
-          elsif initial.is_a?(Hash) || (initial.is_a?(Proc) && initial.call.is_a?(Hash))
+          elsif initial.is_a?(Hash)
             define_hash_mutation_methods(name)
           end
         end
         
         # Define a state observer
         def observe(state_name, &block)
-          state_observers[state_name] ||= []
-          state_observers[state_name] << block
+          observers = Array(state_observers[state_name]).dup
+          observers << block
+          self.state_observers = state_observers.merge(state_name => observers)
         end
         
         private
@@ -125,19 +132,39 @@ module SwiftUIRails
       end
       
       private
+
+      def validate_state_value!(name, value)
+        definition = self.class.state_definitions.fetch(name.to_sym)
+        expected_type = definition[:type]
+        return true if expected_type.nil?
+
+        valid = if expected_type == :boolean
+          value == true || value == false
+        elsif expected_type.is_a?(Array)
+          expected_type.any? { |candidate| value.is_a?(candidate) }
+        else
+          value.is_a?(expected_type)
+        end
+        return true if valid
+
+        raise TypeError, "State '#{name}' must be a #{expected_type}"
+      end
       
       def initialize_state_tracking
         @state_values ||= {}
-        @state_changes = []
-        @state_generation = SecureRandom.hex(8)
+        @state_changes ||= []
+        @state_generation ||= SecureRandom.hex(8)
         
         # Initialize all state variables
         self.class.state_definitions.each do |name, definition|
-          if @state_values[name].nil?
+          unless @state_values.key?(name)
             initial = definition[:initial]
-            @state_values[name] = initial.is_a?(Proc) ? instance_exec(&initial) : initial
+            value = initial.is_a?(Proc) ? instance_exec(&initial) : initial
+            @state_values[name] = value.respond_to?(:deep_dup) ? value.deep_dup : value
           end
         end
+
+        capture_reactive_dependency_snapshot! if respond_to?(:capture_reactive_dependency_snapshot!, true)
       end
       
       def track_state_change(name, old_value, new_value)
@@ -156,15 +183,19 @@ module SwiftUIRails
             instance_exec(new_value, old_value, &observer)
           end
         end
+
+        request_automatic_rerender if respond_to?(:request_automatic_rerender, true)
       end
       
       def generate_state_updates
         return if @state_changes.empty?
-        
-        # Add state data attributes for Stimulus
+
+        # Mark the rendered tree as stale without exposing old/new state
+        # values in public HTML attributes. The encrypted snapshot remains the
+        # only browser-carried representation of component-local state.
         @_content = @_content.to_s.gsub(
           /(<[^>]+)(>)/,
-          "\\1 data-state-generation=\"#{@state_generation}\" data-state-changes='#{@state_changes.to_json}'\\2"
+          "\\1 data-state-generation=\"#{ERB::Util.html_escape(@state_generation)}\" data-state-invalidated=\"true\"\\2"
         ).html_safe
       end
       
@@ -184,7 +215,7 @@ module SwiftUIRails
         end
         
         def on_change(&handler)
-          # This would integrate with Stimulus for client-side reactivity
+          # The server-owned reactive renderer consumes this callback.
           @change_handler = handler
           self
         end

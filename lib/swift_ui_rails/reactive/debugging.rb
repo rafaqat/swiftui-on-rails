@@ -74,25 +74,19 @@ module SwiftUIRails
       
       def generate_debug_panel
         state_data = state_snapshot
-        
+
         <<~HTML
-          <div class="swift-ui-debug-panel" 
-               data-controller="swift-ui-debug"
-               data-swift-ui-debug-state-value='#{state_data.to_json}'
-               style="display: none;">
+          <details class="swift-ui-debug-panel">
+            <summary class="swift-ui-debug-trigger" title="Inspect Component State">
+              🔍 #{ERB::Util.html_escape(self.class.name)} State Inspector
+            </summary>
             <div class="debug-header">
-              <h4>#{self.class.name} State Inspector</h4>
-              <button data-action="click->swift-ui-debug#toggle">×</button>
+              <h4>#{ERB::Util.html_escape(self.class.name)} State Inspector</h4>
             </div>
             <div class="debug-content">
               #{generate_debug_sections(state_data)}
             </div>
-          </div>
-          <button class="swift-ui-debug-trigger"
-                  data-action="click->swift-ui-debug#show"
-                  title="Inspect Component State">
-            🔍
-          </button>
+          </details>
           #{debug_styles}
         HTML
       end
@@ -205,7 +199,7 @@ module SwiftUIRails
       end
       
       def collect_state_values
-        return {} unless respond_to?(:state_definitions)
+        return {} unless self.class.respond_to?(:state_definitions)
         
         self.class.state_definitions.keys.each_with_object({}) do |name, hash|
           hash[name] = send(name) if respond_to?(name)
@@ -213,7 +207,7 @@ module SwiftUIRails
       end
       
       def collect_binding_values
-        return {} unless respond_to?(:binding_definitions)
+        return {} unless self.class.respond_to?(:binding_definitions)
         
         self.class.binding_definitions.keys.each_with_object({}) do |name, hash|
           hash[name] = send("#{name}_value") if respond_to?("#{name}_value")
@@ -221,7 +215,7 @@ module SwiftUIRails
       end
       
       def collect_observed_values
-        return {} unless respond_to?(:observed_object_definitions)
+        return {} unless self.class.respond_to?(:observed_object_definitions)
         
         self.class.observed_object_definitions.keys.each_with_object({}) do |name, hash|
           hash[name] = send("#{name}_data") if respond_to?("#{name}_data")
@@ -229,9 +223,15 @@ module SwiftUIRails
       end
       
       def collect_prop_values
-        return {} unless self.class.respond_to?(:prop_definitions)
-        
-        self.class.prop_definitions.keys.each_with_object({}) do |name, hash|
+        prop_definitions = if self.class.respond_to?(:swift_props)
+          self.class.swift_props
+        elsif self.class.respond_to?(:prop_definitions)
+          self.class.prop_definitions
+        else
+          {}
+        end
+
+        prop_definitions.keys.each_with_object({}) do |name, hash|
           hash[name] = instance_variable_get("@#{name}")
         end
       end
