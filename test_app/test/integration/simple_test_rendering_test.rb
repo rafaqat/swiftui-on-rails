@@ -1,38 +1,28 @@
+# frozen_string_literal: true
+
 require "test_helper"
 
 class SimpleTestRenderingTest < ActionDispatch::IntegrationTest
-  test "check simple test page HTML" do
-    get "/home/simple_test"
-    
-    puts "\n=== Full Response Body ==="
-    puts response.body
-    
-    # Check what each test section contains
-    body_lines = response.body.split("\n")
-    
-    test1_index = body_lines.index { |line| line.include?("Test 1: Basic text") }
-    test2_index = body_lines.index { |line| line.include?("Test 2: Basic vstack") }
-    test3_index = body_lines.index { |line| line.include?("Test 3: Vstack with padding") }
-    test4_index = body_lines.index { |line| line.include?("Test 4: Full example") }
-    
-    if test1_index && test2_index
-      puts "\n=== Test 1 output ==="
-      puts body_lines[test1_index..test2_index-1].join("\n")
+  test "counter page renders each configured DSL component" do
+    get counter_path
+
+    assert_response :success
+    assert_select "h1", text: "Counter Component"
+    assert_select "[data-sui-component='CounterComponent']", count: 4
+
+    expected_counters = [
+      { count: 0, step: 1, label: "Counter" },
+      { count: 0, step: 5, label: "Steps" },
+      { count: 100, step: 10, label: "Score" },
+      { count: 50, step: 1, label: "Items" }
+    ]
+
+    expected_counters.each do |counter|
+      assert_select "[data-counter-label='true']", text: "#{counter[:label]}: #{counter[:count]}", count: 1
     end
-    
-    if test2_index && test3_index
-      puts "\n=== Test 2 output ==="
-      puts body_lines[test2_index..test3_index-1].join("\n")
-    end
-    
-    if test3_index && test4_index
-      puts "\n=== Test 3 output ==="
-      puts body_lines[test3_index..test4_index-1].join("\n")
-    end
-    
-    if test4_index
-      puts "\n=== Test 4 output ==="
-      puts body_lines[test4_index..-1].take(20).join("\n")
-    end
+
+    assert_select "button", text: "+", count: 4
+    assert_select "button", text: "Reset", count: 4
+    assert_select "button", text: "-", count: 4
   end
 end

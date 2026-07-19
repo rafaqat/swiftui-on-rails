@@ -1,0 +1,19 @@
+<% content_for :title, "SwiftUI Rails Playground" %>
+
+<%= render SwiftUiRailsPlaygroundComponent.new(
+  examples: @examples,
+  selected_example: @selected_example,
+  initial_result: @initial_result,
+  compile_url: showcase_playground_compile_path,
+  run_url: showcase_playground_run_path,
+  show_url: showcase_playground_path,
+  preview_url: @preview_url,
+  source: @source,
+  data_json: @data_json,
+  assist_url: showcase_playground_assist_path,
+  assistant_available: @assistant_available,
+  language_url: showcase_playground_language_path,
+  verify_url: showcase_playground_verify_path,
+  reliability_url: showcase_playground_reliability_path,
+  token_benchmark_url: showcase_playground_token_benchmark_path
+) %>

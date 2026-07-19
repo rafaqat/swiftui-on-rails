@@ -1,45 +1,59 @@
 require "test_helper"
+require "timeout"
 
 class ElementBlockTest < ActiveSupport::TestCase
-  test "element block execution" do
-    view = ActionView::Base.new(ActionView::LookupContext.new([]), {}, nil)
-    view.extend(SwiftUIRails::Helpers)
-    
-    dsl_context = SwiftUIRails::DSLContext.new(view)
-    
-    # Test 1: Simple block
-    puts "=== Test 1: Simple block ==="
-    element = dsl_context.vstack { 
-      puts "Inside vstack block - self.class: #{self.class}"
-      dsl_context.text("Test content")
-    }
-    puts "Element class: #{element.class}"
-    html = element.to_s
-    puts "HTML: #{html}"
-    puts "Contains 'Test content': #{html.include?('Test content')}"
-    
-    # Test 2: Block with multiple elements
-    puts "\n=== Test 2: Multiple elements ==="
-    element2 = dsl_context.vstack { 
-      dsl_context.text("Line 1")
-      dsl_context.text("Line 2")
-    }
-    html2 = element2.to_s
-    puts "HTML: #{html2}"
-    puts "Contains 'Line 1': #{html2.include?('Line 1')}"
-    puts "Contains 'Line 2': #{html2.include?('Line 2')}"
-    
-    # Test 3: Check what the block returns
-    puts "\n=== Test 3: Block return value ==="
-    element3 = dsl_context.vstack do
-      result1 = dsl_context.text("First")
-      result2 = dsl_context.text("Second")
-      puts "result1 class: #{result1.class}"
-      puts "result2 class: #{result2.class}"
-      # What does the block return?
-      [result1, result2]
+  test "element blocks capture multiple children exactly once" do
+    context = SwiftUIRails::DSLContext.new(build_view)
+    element = context.instance_eval do
+      vstack do
+        text("Line 1")
+        text("Line 2")
+      end
     end
-    html3 = element3.to_s
-    puts "HTML: #{html3}"
+
+    fragment = Nokogiri::HTML.fragment(element.to_s)
+
+    assert_instance_of SwiftUIRails::DSL::Element, element
+    assert_equal ["Line 1", "Line 2"], fragment.css("span").map(&:text)
+    assert_equal 1, fragment.css("span").count { |node| node.text == "Line 1" }
+    assert_equal 1, fragment.css("span").count { |node| node.text == "Line 2" }
+  end
+
+  test "array results of registered children are not stringified or duplicated" do
+    context = SwiftUIRails::DSLContext.new(build_view)
+    element = context.instance_eval do
+      div do
+        [text("First child"), text("Second child")]
+      end
+    end
+
+    html = Timeout.timeout(2) { element.to_s }
+    fragment = Nokogiri::HTML.fragment(html)
+
+    assert_equal ["First child", "Second child"], fragment.css("span").map(&:text)
+    refute_includes html, "#<SwiftUIRails::DSL::Element"
+    refute_includes html, "#<SwiftUIRails::DSLContext"
+  end
+
+  test "arrays returned by enumerable composition do not leak domain objects" do
+    context = SwiftUIRails::DSLContext.new(build_view)
+    rows = [{ label: "Flight readiness", value: 75 }]
+    element = context.instance_eval do
+      div do
+        rows.each { |row| text(row.fetch(:label)) }
+      end
+    end
+
+    html = Timeout.timeout(2) { element.to_s }
+
+    assert_includes html, "Flight readiness"
+    refute_includes html, "{label:"
+    refute_includes html, "value: 75"
+  end
+
+  private
+
+  def build_view
+    ActionView::Base.new(ActionView::LookupContext.new([]), {}, nil)
   end
 end

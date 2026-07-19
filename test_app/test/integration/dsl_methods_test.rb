@@ -3,110 +3,78 @@
 require "test_helper"
 
 class DslMethodsTest < ActionDispatch::IntegrationTest
-  test "all recently added DSL methods work without errors" do
-    # Test each recently added DSL method
-    dsl_methods_to_test = %w[
-      line_clamp font_size text_align italic underline corner_radius
-      background padding button_style button_size hover_scale items_center
-      justify_center margin_bottom margin_top padding_x padding_y
-      max_width transition loading border_color cursor hover_background
-      aspect_ratio object_fit grayscale blur text_center
-    ]
-    
-    failing_methods = []
-    
-    dsl_methods_to_test.each do |method_name|
-      begin
-        # Test by visiting a story that uses this method
-        case method_name
-        when "line_clamp", "font_size", "text_align", "italic", "underline"
-          get "/storybook/show", params: { 
-            story: "text_component", 
-            line_clamp: "2",
-            font_size: "lg",
-            text_align: "center",
-            italic: true,
-            underline: true
-          }
-        when "corner_radius", "background", "padding", "hover_scale"
-          get "/storybook/show", params: { 
-            story: "card_component",
-            corner_radius: "lg",
-            background_color: "blue-50",
-            padding: "16",
-            hover_effect: true
-          }
-        when "button_style", "button_size"
-          get "/storybook/show", params: { 
-            story: "button_component",
-            variant: "primary",
-            size: "md"
-          }
-        when "aspect_ratio", "object_fit", "grayscale", "blur"
-          get "/storybook/show", params: { 
-            story: "image_component",
-            aspect_ratio: "square",
-            object_fit: "cover",
-            grayscale: true,
-            blur: true
-          }
-        else
-          # Test with a simple component
-          get "/storybook/show", params: { story: "text_component" }
-        end
-        
-        # Check if the response contains an undefined method error for this method
-        if response.body.include?("undefined method `#{method_name}'")
-          failing_methods << method_name
-          puts "❌ #{method_name}: undefined method error"
-        elsif response.body.include?("Error rendering component")
-          # Check if it's related to our method
-          if response.body.include?(method_name)
-            failing_methods << method_name
-            puts "❌ #{method_name}: render error (possibly related)"
-          else
-            puts "✅ #{method_name}: working (other render error unrelated)"
-          end
-        else
-          puts "✅ #{method_name}: working"
-        end
-        
-      rescue => e
-        failing_methods << method_name
-        puts "❌ #{method_name}: exception - #{e.message}"
-      end
-    end
-    
-    puts "\n📊 DSL Methods Test Summary:"
-    puts "=" * 40
-    puts "✅ Working: #{dsl_methods_to_test.length - failing_methods.length}/#{dsl_methods_to_test.length}"
-    puts "❌ Failing: #{failing_methods.length}/#{dsl_methods_to_test.length}"
-    
-    if failing_methods.any?
-      puts "\n🚨 Failing methods:"
-      failing_methods.each { |method| puts "  - #{method}" }
-    end
-    
-    assert failing_methods.empty?, 
-      "DSL methods failing: #{failing_methods.join(', ')}"
-  end
-  
-  test "specific line_clamp functionality" do
-    # Test line_clamp specifically since that was the reported issue
-    get "/storybook/show", params: { 
-      story: "text_component",
-      content: "This is a long text that should be clamped to multiple lines when the line_clamp property is applied.",
-      line_clamp: "2"
-    }
-    
+  test "form-control DSL methods render through the live Storybook route" do
+    get storybook_show_path,
+        params: {
+          story: "new_dsl_methods",
+          story_variant: "form_controls",
+          selected_color: "green",
+          show_label: "true",
+          label_text: "Pick one"
+        }
+
     assert_response :success
-    refute_includes response.body, "undefined method `line_clamp'", 
-      "line_clamp method should be defined"
-    refute_includes response.body, "Error rendering component", 
-      "Component should render without errors"
-      
-    # Should include the CSS class
-    assert_includes response.body, "line-clamp-2", 
-      "Should include line-clamp-2 CSS class in output"
+    assert_select "#component-preview label[for='color-select']", text: "Pick one"
+    assert_select "#component-preview select[name='color'] option[value='green'][selected='selected']"
+    assert_not_includes response.body, "Error rendering component:"
+  end
+
+  test "advanced styling controls produce their requested utility classes" do
+    get storybook_show_path,
+        params: {
+          story: "new_dsl_methods",
+          story_variant: "advanced_styling",
+          break_mode: "avoid-page",
+          ring_width: "4",
+          ring_color: "purple-500",
+          group_opacity: "50"
+        }
+
+    assert_response :success
+    assert_includes response.body, "break-inside-avoid-page"
+    assert_includes response.body, "hover:ring-4"
+    assert_includes response.body, "hover:ring-purple-500"
+    assert_includes response.body, "group-hover:opacity-50"
+    assert_not_includes response.body, "Error rendering component:"
+  end
+
+  test "flex and inline-style modifiers render from live controls" do
+    get storybook_show_path,
+        params: {
+          story: "new_dsl_methods",
+          story_variant: "flex_and_styles",
+          flex_shrink_value: "0",
+          custom_style: "color: red;",
+          tooltip_text: "Custom tooltip"
+        }
+
+    assert_response :success
+    assert_select "#component-preview .flex-shrink-0"
+    assert_select "#component-preview [title='Custom tooltip'][style*='color: red']"
+    assert_not_includes response.body, "Error rendering component:"
+  end
+
+  test "line clamp is exercised by a current story instead of a missing fixture" do
+    get storybook_show_path,
+        params: {
+          story: "dsl_card",
+          story_variant: "default",
+          card_content: "This content should be clamped"
+        }
+
+    assert_response :success
+    assert_select "#component-preview .line-clamp-3", text: "This content should be clamped"
+    assert_not_includes response.body, "Error rendering component:"
+  end
+
+  test "image and alignment modifiers render in the enhanced grid story" do
+    get storybook_show_path,
+        params: { story: "enhanced_grid", story_variant: "dense_packing" }
+
+    assert_response :success
+    assert_select "#component-preview .aspect-square"
+    assert_select "#component-preview .object-cover"
+    assert_select "#component-preview .text-center"
+    assert_not_includes response.body, "Error rendering component:"
   end
 end

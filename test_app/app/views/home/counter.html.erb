@@ -9,7 +9,7 @@
         Back to Components
       </a>
       <h1 class="text-3xl font-bold text-gray-900">Counter Component</h1>
-      <p class="text-lg text-gray-600 mt-2">A simple counter demonstrating client-side state management with Stimulus</p>
+      <p class="text-lg text-gray-600 mt-2">A counter driven by server-owned State and signed Ruby actions</p>
     </div>
     
     <!-- Component Demo -->
@@ -65,10 +65,10 @@
       <div class="prose prose-sm text-gray-600">
         <p>This component demonstrates our Rails-first architecture:</p>
         <ul>
-          <li><strong>Stateless Component</strong>: The Ruby component only renders HTML structure</li>
-          <li><strong>Stimulus Controller</strong>: All state and interactivity managed client-side</li>
-          <li><strong>Data Attributes</strong>: Props passed to Stimulus via data-* attributes</li>
-          <li><strong>Progressive Enhancement</strong>: Shows initial values even without JavaScript</li>
+          <li><strong>Server-owned State</strong>: Ruby declares and mutates the counter value</li>
+          <li><strong>Signed Actions</strong>: Buttons carry opaque action identities, never method names</li>
+          <li><strong>RenderIR Patches</strong>: Stable identities allow bounded selective DOM updates</li>
+          <li><strong>Progressive HTML</strong>: The initial interface is complete server-rendered markup</li>
         </ul>
       </div>
     </div>

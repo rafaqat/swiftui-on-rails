@@ -12,8 +12,6 @@ gem "puma", ">= 5.0"
 gem "importmap-rails"
 # Hotwire's SPA-like page accelerator [https://turbo.hotwired.dev]
 gem "turbo-rails", "~> 2.0"
-# Hotwire's modest JavaScript framework [https://stimulus.hotwired.dev]
-gem "stimulus-rails"
 # Build JSON APIs with ease [https://github.com/rails/jbuilder]
 gem "jbuilder"
 
@@ -43,6 +41,13 @@ gem "thruster", require: false
 # SwiftUI Rails
 gem "swift_ui_rails", path: "../"
 gem "tailwindcss-rails"
+# Exact BPE counts power the public, deterministic source benchmark. Keep this
+# in the runtime bundle; the service lazy-loads no development-only dependency.
+gem "tiktoken_ruby", "~> 0.0.16", require: false
+# The live playground parses submitted Ruby-like syntax into a strict,
+# non-executable intermediate representation. Keep that security boundary a
+# declared dependency instead of relying on Rails' transitive parser graph.
+gem "prism", "~> 1.9"
 # Use our fixed fork of view_component-storybook
 gem "view_component_storybook_rails8", path: "../view_component_storybook_rails8"
 
@@ -53,13 +58,19 @@ group :development, :test do
   # Static analysis for security vulnerabilities [https://brakemanscanner.org/]
   gem "brakeman", require: false
 
+  # Check the locked dependency graph against published advisories.
+  gem "bundler-audit", require: false
+
   # Omakase Ruby styling [https://github.com/rails/rubocop-rails-omakase/]
   gem "rubocop-rails-omakase", require: false
+
 end
 
 group :test do
   # Use system testing [https://guides.rubyonrails.org/testing.html#system-testing]
   gem "capybara"
+  # Minitest 6 removed minitest/mock, which the regression suite uses.
+  gem "minitest", ">= 5.25", "< 6"
   gem "selenium-webdriver"
   
   # Code coverage reporting

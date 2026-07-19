@@ -49,3 +49,52 @@
 # Ignore Docker-related files
 /.dockerignore
 /Dockerfile*
+/docker-compose*.yml
+
+# SECURITY: Ignore sensitive files
+/test/
+/spec/
+/features/
+/coverage/
+*.pem
+*.key
+*.crt
+*.p12
+.DS_Store
+.env*
+/secrets/
+/config/secrets.yml
+/config/database.yml
+/vendor/bundle/
+*.swp
+*.swo
+*~
+.project
+.idea
+.secret
+*.orig
+*.rej
+
+# SECURITY: Ignore development and test artifacts
+/public/packs-test/
+/public/uploads/
+/public/system/
+.byebug_history
+.rspec
+.rubocop.yml
+.ruby-gemset
+.rvmrc
+/db/*.sqlite3
+/db/*.sqlite3-journal
+/db/*.sqlite3-*
+
+# SECURITY: Ignore user-generated content
+/public/uploads/
+/public/system/
+/uploads/
+
+# SECURITY: Ignore backup files
+*.bak
+*.backup
+*.old
+*.save

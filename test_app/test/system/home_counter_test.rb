@@ -1,35 +1,27 @@
+# frozen_string_literal: true
+
 require "application_system_test_case"
 
 class HomeCounterTest < ApplicationSystemTestCase
-  test "counter works on home page" do
-    visit root_path
-    
-    # Counter should be visible
-    assert_selector "[data-controller='counter']"
-    
-    # Initial state
-    within "[data-controller='counter']" do
-      assert_text "Counter: 0"
-      assert_text "0"
-      
-      # Click increment
+  test "primary counter responds to every rendered action" do
+    visit counter_path
+
+    within "[data-counter='true']", text: /Counter:/ do
+      assert_selector "[data-counter-label='true']", text: "Counter: 0"
+
       click_button "+"
-      assert_text "Counter: 1"
-      assert_text "1"
-      
-      # Click increment again
+      assert_selector "[data-counter-label='true']", text: "Counter: 1"
+
       click_button "+"
-      assert_text "Counter: 2"
-      
-      # Click decrement
+      assert_selector "[data-counter-label='true']", text: "Counter: 2"
+
       click_button "-"
-      assert_text "Counter: 1"
-      
-      # Click reset
+      assert_selector "[data-counter-label='true']", text: "Counter: 1"
+
       click_button "Reset"
-      assert_text "Counter: 0"
+      assert_selector "[data-counter-label='true']", text: "Counter: 0"
     end
-    
-    take_screenshot
+
+    assert_no_console_errors
   end
 end

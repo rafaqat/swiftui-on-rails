@@ -1,43 +1,31 @@
 require "test_helper"
 
 class ComplexNestingDebugTest < ActiveSupport::TestCase
-  test "trace complex nesting execution" do
-    view = ActionView::Base.new(ActionView::LookupContext.new([]), {}, nil)
-    view.extend(SwiftUIRails::Helpers)
-    
-    # Monkey patch to add debugging
-    original_create_element = SwiftUIRails::DSL.instance_method(:create_element)
-    SwiftUIRails::DSL.define_method(:create_element) do |tag_name, content = nil, options = {}, &block|
-      puts "=== create_element called ==="
-      puts "  tag_name: #{tag_name}"
-      puts "  content: #{content.inspect}"
-      puts "  has block?: #{block_given?}"
-      puts "  caller: #{caller[0]}"
-      result = original_create_element.bind(self).call(tag_name, content, options, &block)
-      puts "  result: #{result.to_s[0..100]}..."
-      result
-    end
-    
-    result = view.swift_ui do
-      puts "\n>>> Starting vstack"
-      vstack(spacing: 24).p(8).max_w("4xl").mx("auto") { 
-        puts "\n>>> Inside vstack block"
+  test "complex nesting preserves hierarchy and renders each child once" do
+    result = build_view.swift_ui do
+      vstack(spacing: 24).p(8) do
         text("Header")
-        
-        puts "\n>>> Creating card"
-        card(elevation: 2).p(6) { 
-          puts "\n>>> Inside card block"
+        card(elevation: 2).p(6) do
           text("Inside card")
-        }
-        puts "\n>>> After card"
-      }
-      puts "\n>>> After vstack"
+        end
+      end
     end
-    
-    puts "\n=== FINAL RESULT ==="
-    puts result
-    
-    # Restore original method
-    SwiftUIRails::DSL.define_method(:create_element, original_create_element)
+
+    fragment = Nokogiri::HTML.fragment(result)
+    outer = fragment.at_css("div.flex.flex-col.p-8")
+    card = outer&.at_css("div.bg-white.shadow-md.p-6")
+
+    assert_equal "Header", outer&.at_xpath("./span")&.text
+    assert_equal "Inside card", card&.at_xpath("./span")&.text
+    assert_equal 1, fragment.css("span").count { |node| node.text == "Header" }
+    assert_equal 1, fragment.css("span").count { |node| node.text == "Inside card" }
+  end
+
+  private
+
+  def build_view
+    ActionView::Base.new(ActionView::LookupContext.new([]), {}, nil).tap do |view|
+      view.extend(SwiftUIRails::Helpers)
+    end
   end
 end

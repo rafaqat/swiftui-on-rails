@@ -1,0 +1,17 @@
+<%= render AtlasMissionControlComponent.new(
+  phase: @mission_state.phase.symbolize_keys,
+  sequence_items: @mission_state.sequence_items,
+  system_items: @mission_state.system_items,
+  alert_items: @mission_state.alert_items,
+  telemetry: @mission_state.telemetry,
+  activity: @mission_state.activity.map(&:symbolize_keys),
+  summary: {
+    readiness: @mission_state.readiness,
+    hold_count: @mission_state.hold_count,
+    escalated_alerts: @mission_state.escalated_alerts,
+    mission_status: @mission_state.mission_status
+  },
+  document: @mission_state.document&.symbolize_keys,
+  surface: @mission_surface,
+  presentation: @mission_presentation
+) %>

@@ -1,74 +1,117 @@
 require "test_helper"
 
 class BlockBindingTest < ActiveSupport::TestCase
-  test "demonstrate block binding issue and workarounds" do
-    view = ActionView::Base.new(ActionView::LookupContext.new([]), {}, nil)
-    view.extend(SwiftUIRails::Helpers)
-    
-    # Problem: block binds to last method
-    puts "=== Problem: Block binds to mx(), not vstack ==="
-    result1 = view.swift_ui do
-      vstack(spacing: 24).p(8).mx("auto") { 
-        text("This won't work as expected")
-      }
+  test "modifier chains retain a trailing content block" do
+    result = build_view.swift_ui do
+      vstack(spacing: 24).p(8).mx("auto") do
+        text("Bound content")
+      end
     end
-    puts result1
-    puts "vstack is empty? #{!result1.include?('This won')}"
-    
-    # Workaround 1: Use parentheses
-    puts "\n=== Workaround 1: Parentheses ==="
-    result2 = view.swift_ui do
-      (vstack(spacing: 24) { 
-        text("This works!")
-      }).p(8).mx("auto")
-    end
-    puts result2
-    
-    # Workaround 2: Store intermediate result
-    puts "\n=== Workaround 2: Store intermediate ==="
-    result3 = view.swift_ui do
-      container = vstack(spacing: 24) { 
-        text("This also works!")
-      }
-      container.p(8).mx("auto")
-    end
-    puts result3
-    
-    # Workaround 3: Chain after block
-    puts "\n=== Workaround 3: Chain after block ==="
-    result4 = view.swift_ui do
-      vstack(spacing: 24) { 
-        text("Chain after block")
-      }.p(8).mx("auto")
-    end
-    puts result4
+
+    assert_predicate result, :html_safe?
+    assert_includes result, "Bound content"
+    assert_match(/class="[^"]*p-8[^"]*mx-auto/, result)
+    assert_includes result, 'style="gap: 24px"'
   end
-  
-  test "fix home page pattern" do
-    view = ActionView::Base.new(ActionView::LookupContext.new([]), {}, nil)
-    view.extend(SwiftUIRails::Helpers)
-    
-    # Fixed version of home page pattern
-    result = view.swift_ui do
-      vstack(spacing: 24) { 
+
+  test "modifiers chained after a nested block preserve all content" do
+    result = build_view.swift_ui do
+      vstack(spacing: 24) do
         text("Header")
-        
-        card(elevation: 2) { 
-          vstack(spacing: 16) { 
+        card(elevation: 2) do
+          vstack(spacing: 16) do
             text("Inside nested vstack")
             button("Button 1")
-          }
-        }.p(6)  # Chain padding after the block
-      }.p(8).max_w("4xl").mx("auto")  # Chain these after the block
+          end
+        end.p(6)
+      end.p(8).max_w("4xl").mx("auto")
     end
-    
-    puts "\n=== Fixed home page pattern ==="
-    puts result
-    
-    assert result.include?("Header")
-    assert result.include?("Inside nested vstack")
-    assert result.include?("Button 1")
-    assert result.include?("p-8")
-    assert result.include?("max-w-4xl")
+
+    assert_includes result, "Header"
+    assert_includes result, "Inside nested vstack"
+    assert_includes result, "Button 1"
+    assert_match(/class="[^"]*p-8[^"]*max-w-4xl[^"]*mx-auto/, result)
+  end
+
+  test "Ruby actions compile to opaque framework-neutral capabilities" do
+    result = build_view.swift_ui do
+      card = div do
+        text("Interactive Card")
+      end
+      card.on_click { nil }
+    end
+
+    fragment = Nokogiri::HTML.fragment(result)
+    interactive_card = fragment.at_css("[data-sui-actions]")
+
+    assert interactive_card, "Expected the semantic action element to render"
+    assert_equal "Interactive Card", interactive_card.text
+    action_id = JSON.parse(interactive_card["data-sui-actions"]).fetch("click")
+    assert_match(/\Aa_[0-9a-f]{32}\z/, action_id)
+    refute_match(/controller|#/, action_id)
+  end
+
+  test "legacy controller target and param modifiers are deterministically rejected" do
+    legacy_calls = {
+      stimulus_controller: ["cart"],
+      stimulus_target: ["submitButton"],
+      stimulus_param: ["product-id", 42],
+      stimulus_action: ["click->cart#add"]
+    }
+    legacy_calls.each do |method, arguments|
+      error = assert_raises(SwiftUIRails::Error, method.to_s) do
+        build_view.swift_ui do
+          button("Add to cart").public_send(method, *arguments)
+        end
+      end
+
+      assert_match(/Application JavaScript|unsupported/i, error.message)
+    end
+  end
+
+  test "raw application callback metadata is rejected at the IR boundary" do
+    error = assert_raises(SwiftUIRails::RenderIR::InvalidStructure) do
+      build_view.swift_ui do
+        button("Unsafe", data: { action: "click->cart#add eval->malicious#code" })
+      end
+    end
+
+    assert_match(/Application JavaScript metadata/, error.message)
+  end
+
+  test "links reject executable URL schemes" do
+    result = build_view.swift_ui do
+      vstack do
+        link("Unsafe", destination: "javascript:alert('xss')")
+        link("Safe", destination: "https://example.com/docs")
+      end
+    end
+
+    fragment = Nokogiri::HTML.fragment(result)
+
+    links = fragment.css("a")
+    assert_equal "#", links[0]["href"]
+    assert_equal "https://example.com/docs", links[1]["href"]
+  end
+
+  test "elements created outside a DSL context escape ordinary block strings" do
+    view = build_view
+    element = SwiftUIRails::DSL::Element.new(:div) do
+      '<img id="outside-context-xss" src="x" onerror="alert(1)">'
+    end
+    element.view_context = view
+
+    fragment = Nokogiri::HTML.fragment(element.to_s)
+
+    refute fragment.at_css("#outside-context-xss")
+    assert_includes fragment.text, '<img id="outside-context-xss"'
+  end
+
+  private
+
+  def build_view
+    ActionView::Base.new(ActionView::LookupContext.new([]), {}, nil).tap do |view|
+      view.extend(SwiftUIRails::Helpers)
+    end
   end
 end

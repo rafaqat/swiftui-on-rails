@@ -1,0 +1,558 @@
+schema_version: 1.0.0
+corpus_version: 1.0.0
+methodology:
+  track: idiomatic_react_vs_swift_ui_framework_leverage
+  comparison_unit: Paired reference cases implemented against the same written behavior contract and serialized fixture in an otherwise minimal Rails application.
+  scopes:
+    view_source: Primary authored view source only, including imports and local helpers.
+    authored_production_closure: >-
+      Authored production closure for the independent case, including view source,
+      mount or rendering integration, feature CSS, build declaration, and target
+      dependency declaration.
+  shared_inputs: The Rails route, controller action, serialized fixture, behavior contract, and acceptance-test specification are identical and excluded from both sides.
+  exclusions:
+    - Framework, gem, and npm dependency source code
+    - Lockfiles and generated, compiled, minified, or source-map assets
+    - Shared Rails backend, route, fixture, and acceptance-test source
+    - Prompt text, markdown fences, filenames emitted as prose, retries, and provider protocol overhead
+  claim_boundary: These are exact static token counts for checked-in paired reference source under one tokenizer. They do not prove LLM provider output-token savings, implementation effort, React runtime parity, or total project cost.
+cases:
+  - id: service-status
+    label: Accessible service status card
+    contract:
+      - Render the service name and current status from the shared fixture.
+      - Announce the status through an accessible live status region.
+      - Present the content as a compact horizontal card with semantic headline and surface styles.
+    parity_checks:
+      - id: fixture-content
+        assertion: The rendered view contains Payments and Operational.
+      - id: accessible-status
+        assertion: The Operational value is exposed through a live status role.
+      - id: semantic-layout
+        assertion: The heading and status remain in one compact card at desktop width.
+    shared_fixture:
+      service:
+        name: Payments
+        status: Operational
+    implementations:
+      react_rails:
+        view_source:
+          - path: app/javascript/components/ServiceStatus.jsx
+            content: |
+              export default function ServiceStatus({ service }) {
+                return (
+                  <section className="status-card" aria-labelledby="service-name">
+                    <h2 id="service-name" className="status-card__headline">
+                      {service.name}
+                    </h2>
+                    <span
+                      className="status-card__badge"
+                      role="status"
+                      aria-live="polite"
+                    >
+                      {service.status}
+                    </span>
+                  </section>
+                );
+              }
+        production_support:
+          - path: app/javascript/service_status_entry.jsx
+            content: |
+              import { createRoot } from "react-dom/client";
+              import ServiceStatus from "./components/ServiceStatus";
+
+              const root = document.getElementById("service-status-root");
+              const service = JSON.parse(root.dataset.service);
+              createRoot(root).render(<ServiceStatus service={service} />);
+          - path: app/assets/stylesheets/service_status.css
+            content: |
+              .status-card {
+                align-items: center;
+                background: #ffffff;
+                border: 1px solid #e2e8f0;
+                border-radius: 1rem;
+                display: flex;
+                gap: 1rem;
+                justify-content: space-between;
+                padding: 1rem;
+              }
+
+              .status-card__headline {
+                color: #0f172a;
+                font-size: 1.125rem;
+                font-weight: 700;
+                margin: 0;
+              }
+
+              .status-card__badge {
+                background: #dcfce7;
+                border-radius: 9999px;
+                color: #166534;
+                font-size: 0.75rem;
+                font-weight: 700;
+                padding: 0.25rem 0.625rem;
+              }
+          - path: app/views/services/show.html.erb
+            content: |
+              <%= stylesheet_link_tag "service_status" %>
+              <%= tag.div id: "service-status-root", data: { service: @benchmark_data.fetch("service").to_json } %>
+              <%= javascript_include_tag "service_status", defer: true %>
+          - path: package.json
+            content: |
+              {"private":true,"scripts":{"build":"esbuild app/javascript/service_status_entry.jsx --bundle --format=esm --jsx=automatic --outfile=app/assets/builds/service_status.js"},"dependencies":{"react":"19.1.0","react-dom":"19.1.0"},"devDependencies":{"esbuild":"0.25.6"}}
+          - path: Gemfile.react_rails
+            content: |
+              gem "jsbundling-rails"
+      swift_ui_rails:
+        view_source:
+          - path: app/components/token_benchmarks/service_status_component.rb
+            content: |
+              # frozen_string_literal: true
+
+              module TokenBenchmarks
+                class ServiceStatusComponent < ApplicationComponent
+                  prop :service, type: Hash, required: true
+
+                  swift_ui do
+                    service = @component.service
+
+                    hstack(spacing: 8) do
+                      text(service.fetch("name")).text_style(:headline).accessibility_heading(level: 2)
+                      spacer
+                      badge(service.fetch("status"), tone: :success, announce: true)
+                    end
+                      .padding(4)
+                      .background_style(:surface)
+                      .rounded("xl")
+                  end
+                end
+              end
+        production_support:
+          - path: app/views/services/show.html.erb
+            content: |
+              <%= render TokenBenchmarks::ServiceStatusComponent.new(service: @benchmark_data.fetch("service")) %>
+          - path: Gemfile.swift_ui_rails
+            content: |
+              gem "swift_ui_rails"
+  - id: product-catalog
+    label: Data-driven product catalog
+    contract:
+      - Render the store name, product count, and every product using stable fixture identity.
+      - Show each product description, price, and a success or danger stock badge.
+      - Present product cards in a two-column grid with semantic surface styling.
+      - Expose one accessible Inspect button for every product.
+    parity_checks:
+      - id: catalog-content
+        assertion: The render contains both fixture products, descriptions, prices, and stock states.
+      - id: stable-identity
+        assertion: Every product card exposes one unique product-{id} DOM id from the fixture.
+      - id: inspect-action
+        assertion: Every product card has an accessible Inspect button.
+      - id: card-layout
+        assertion: Cards use a two-column grid at desktop width and a distinct semantic surface.
+    shared_fixture:
+      store:
+        name: Northstar Supply
+        product_count: 2
+      products:
+        - id: compass
+          name: Trail Compass
+          description: Weatherproof navigation compass
+          price: "48.00"
+          in_stock: true
+        - id: lamp
+          name: Camp Lamp
+          description: Rechargeable warm LED lantern
+          price: "72.00"
+          in_stock: false
+    implementations:
+      react_rails:
+        view_source:
+          - path: app/javascript/components/ProductCatalog.jsx
+            content: |
+              export default function ProductCatalog({ store, products }) {
+                return (
+                  <section className="catalog" aria-labelledby="catalog-title">
+                    <header className="catalog__header">
+                      <h1 id="catalog-title">{store.name}</h1>
+                      <span className="catalog__count">{store.product_count} products</span>
+                    </header>
+                    <div className="catalog__grid">
+                      {products.map((product) => (
+                        <article className="product-card" id={`product-${product.id}`} key={product.id}>
+                          <h2>{product.name}</h2>
+                          <p>{product.description}</p>
+                          <div className="product-card__footer">
+                            <strong>${product.price}</strong>
+                            <span className={`badge badge--${product.in_stock ? "success" : "danger"}`}>
+                              {product.in_stock ? "In Stock" : "Sold Out"}
+                            </span>
+                          </div>
+                          <button type="button">Inspect</button>
+                        </article>
+                      ))}
+                    </div>
+                  </section>
+                );
+              }
+        production_support:
+          - path: app/javascript/product_catalog_entry.jsx
+            content: |
+              import { createRoot } from "react-dom/client";
+              import ProductCatalog from "./components/ProductCatalog";
+
+              const root = document.getElementById("product-catalog-root");
+              const props = JSON.parse(root.dataset.props);
+              createRoot(root).render(<ProductCatalog {...props} />);
+          - path: app/assets/stylesheets/product_catalog.css
+            content: |
+              .catalog {
+                background: #f8fafc;
+                border-radius: 1.5rem;
+                padding: 1.5rem;
+              }
+
+              .catalog__header,
+              .product-card__footer {
+                align-items: center;
+                display: flex;
+                justify-content: space-between;
+              }
+
+              .catalog__grid {
+                display: grid;
+                gap: 1rem;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                margin-top: 1rem;
+              }
+
+              .catalog__count,
+              .badge {
+                border-radius: 9999px;
+                font-size: 0.75rem;
+                font-weight: 700;
+                padding: 0.25rem 0.625rem;
+              }
+
+              .product-card {
+                background: #ffffff;
+                border: 1px solid #e2e8f0;
+                border-radius: 1rem;
+                box-shadow: 0 1px 3px rgb(15 23 42 / 0.1);
+                padding: 1.25rem;
+              }
+
+              .product-card button {
+                border: 1px solid currentColor;
+                border-radius: 0.5rem;
+                margin-top: 0.75rem;
+                padding: 0.5rem 0.75rem;
+              }
+
+              .badge--success { color: #166534; }
+              .badge--danger { color: #b91c1c; }
+          - path: app/views/catalog/show.html.erb
+            content: |
+              <%= stylesheet_link_tag "product_catalog" %>
+              <%= tag.div id: "product-catalog-root", data: { props: @benchmark_data.to_json } %>
+              <%= javascript_include_tag "product_catalog", defer: true %>
+          - path: package.json
+            content: |
+              {"private":true,"scripts":{"build":"esbuild app/javascript/product_catalog_entry.jsx --bundle --format=esm --jsx=automatic --outfile=app/assets/builds/product_catalog.js"},"dependencies":{"react":"19.1.0","react-dom":"19.1.0"},"devDependencies":{"esbuild":"0.25.6"}}
+          - path: Gemfile.react_rails
+            content: |
+              gem "jsbundling-rails"
+      swift_ui_rails:
+        view_source:
+          - path: app/components/token_benchmarks/product_catalog_component.rb
+            content: |
+              # frozen_string_literal: true
+
+              module TokenBenchmarks
+                class ProductCatalogComponent < ApplicationComponent
+                  prop :store, type: Hash, required: true
+                  prop :products, type: Array, required: true
+
+                  swift_ui do
+                    component = @component
+
+                    vstack(alignment: :leading, spacing: 18) do
+                      hstack(spacing: 12) do
+                        text(component.store.fetch("name")).text_style(:title).accessibility_heading(level: 1)
+                        spacer
+                        badge("#{component.store.fetch("product_count")} products", tone: :info)
+                      end
+
+                      grid(columns: 2, spacing: 16) do
+                        component.products.each do |product|
+                          article(id: "product-#{product.fetch("id")}") do
+                            vstack(alignment: :leading, spacing: 10) do
+                              text(product.fetch("name")).text_style(:headline).accessibility_heading(level: 2)
+                              text(product.fetch("description")).text_style(:supporting)
+                              hstack(spacing: 8) do
+                                text("$#{product.fetch("price")}").text_style(:body)
+                                spacer
+                                if product.fetch("in_stock")
+                                  badge("In Stock", tone: :success)
+                                else
+                                  badge("Sold Out", tone: :danger)
+                                end
+                              end
+                              button("Inspect").button_style(:bordered)
+                            end
+                          end
+                            .padding(5)
+                            .background_style(:surface)
+                            .rounded("xl")
+                            .shadow("sm")
+                        end
+                      end
+                    end
+                      .padding(6)
+                      .background_style(:canvas)
+                      .rounded("2xl")
+                  end
+                end
+              end
+        production_support:
+          - path: app/views/catalog/show.html.erb
+            content: |
+              <%= render TokenBenchmarks::ProductCatalogComponent.new(store: @benchmark_data.fetch("store"), products: @benchmark_data.fetch("products")) %>
+          - path: Gemfile.swift_ui_rails
+            content: |
+              gem "swift_ui_rails"
+  - id: mission-readiness
+    label: Mission readiness dashboard
+    contract:
+      - Render mission title, phase, overall progress, and readiness gauge from the fixture.
+      - Render every system with stable identity and an operational or warning status badge.
+      - Present the summary metrics in a three-column grid.
+      - Expose an accessible Run diagnostic button.
+    parity_checks:
+      - id: mission-summary
+        assertion: The render contains Artemis Relay, Flight readiness, 72 percent, and 86 percent.
+      - id: system-content
+        assertion: Every fixture system and its status appears exactly once.
+      - id: stable-identity
+        assertion: Every system row exposes one unique system-{id} DOM id from the fixture.
+      - id: diagnostic-action
+        assertion: The dashboard contains one accessible Run diagnostic button.
+    shared_fixture:
+      mission:
+        name: Artemis Relay
+        phase: Flight readiness
+        progress: 72
+        readiness: 86
+      systems:
+        - id: guidance
+          name: Guidance
+          operational: true
+        - id: telemetry
+          name: Telemetry
+          operational: true
+        - id: recovery
+          name: Recovery
+          operational: false
+    implementations:
+      react_rails:
+        view_source:
+          - path: app/javascript/components/MissionReadiness.jsx
+            content: |
+              export default function MissionReadiness({ mission, systems }) {
+                return (
+                  <section className="mission" aria-labelledby="mission-title">
+                    <header className="mission__header">
+                      <div>
+                        <p>{mission.phase}</p>
+                        <h1 id="mission-title">{mission.name}</h1>
+                      </div>
+                      <button type="button">Run diagnostic</button>
+                    </header>
+                    <div className="mission__metrics">
+                      <article>
+                        <h2>Mission progress</h2>
+                        <progress value={mission.progress} max="100">
+                          {mission.progress}%
+                        </progress>
+                        <strong>{mission.progress}%</strong>
+                      </article>
+                      <article>
+                        <h2>Readiness</h2>
+                        <meter value={mission.readiness} min="0" max="100">
+                          {mission.readiness}%
+                        </meter>
+                        <strong>{mission.readiness}%</strong>
+                      </article>
+                      <article>
+                        <h2>Systems</h2>
+                        <strong>{systems.length}</strong>
+                      </article>
+                    </div>
+                    <ul className="mission__systems">
+                      {systems.map((system) => (
+                        <li id={`system-${system.id}`} key={system.id}>
+                          <span>{system.name}</span>
+                          <span className={`badge badge--${system.operational ? "success" : "warning"}`}>
+                            {system.operational ? "Operational" : "Attention"}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
+                );
+              }
+        production_support:
+          - path: app/javascript/mission_readiness_entry.jsx
+            content: |
+              import { createRoot } from "react-dom/client";
+              import MissionReadiness from "./components/MissionReadiness";
+
+              const root = document.getElementById("mission-readiness-root");
+              const props = JSON.parse(root.dataset.props);
+              createRoot(root).render(<MissionReadiness {...props} />);
+          - path: app/assets/stylesheets/mission_readiness.css
+            content: |
+              .mission {
+                background: #f8fafc;
+                border-radius: 1.5rem;
+                padding: 1.5rem;
+              }
+
+              .mission__header,
+              .mission__systems li {
+                align-items: center;
+                display: flex;
+                justify-content: space-between;
+              }
+
+              .mission__metrics {
+                display: grid;
+                gap: 1rem;
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+                margin: 1.5rem 0;
+              }
+
+              .mission__metrics article,
+              .mission__systems li {
+                background: #ffffff;
+                border: 1px solid #e2e8f0;
+                border-radius: 1rem;
+                padding: 1rem;
+              }
+
+              .mission__metrics progress,
+              .mission__metrics meter {
+                display: block;
+                margin: 0.75rem 0;
+                width: 100%;
+              }
+
+              .mission__systems {
+                display: grid;
+                gap: 0.75rem;
+                list-style: none;
+                padding: 0;
+              }
+
+              .badge {
+                border-radius: 9999px;
+                font-size: 0.75rem;
+                font-weight: 700;
+                padding: 0.25rem 0.625rem;
+              }
+
+              .badge--success { color: #166534; }
+              .badge--warning { color: #a16207; }
+          - path: app/views/missions/show.html.erb
+            content: |
+              <%= stylesheet_link_tag "mission_readiness" %>
+              <%= tag.div id: "mission-readiness-root", data: { props: @benchmark_data.to_json } %>
+              <%= javascript_include_tag "mission_readiness", defer: true %>
+          - path: package.json
+            content: |
+              {"private":true,"scripts":{"build":"esbuild app/javascript/mission_readiness_entry.jsx --bundle --format=esm --jsx=automatic --outfile=app/assets/builds/mission_readiness.js"},"dependencies":{"react":"19.1.0","react-dom":"19.1.0"},"devDependencies":{"esbuild":"0.25.6"}}
+          - path: Gemfile.react_rails
+            content: |
+              gem "jsbundling-rails"
+      swift_ui_rails:
+        view_source:
+          - path: app/components/token_benchmarks/mission_readiness_component.rb
+            content: |
+              # frozen_string_literal: true
+
+              module TokenBenchmarks
+                class MissionReadinessComponent < ApplicationComponent
+                  prop :mission, type: Hash, required: true
+                  prop :systems, type: Array, required: true
+
+                  swift_ui do
+                    component = @component
+
+                    vstack(alignment: :leading, spacing: 18) do
+                      hstack(spacing: 12) do
+                        vstack(alignment: :leading, spacing: 2) do
+                          text(component.mission.fetch("phase")).text_style(:supporting)
+                          text(component.mission.fetch("name")).text_style(:title).accessibility_heading(level: 1)
+                        end
+                        spacer
+                        button("Run diagnostic").button_style(:bordered)
+                      end
+
+                      grid(columns: 3, spacing: 12) do
+                        article do
+                          text("Mission progress").text_style(:headline).accessibility_heading(level: 2)
+                          progress_view(
+                            value: component.mission.fetch("progress"),
+                            total: 100,
+                            label: "Mission progress"
+                          )
+                        end
+                          .padding(4)
+                          .background_style(:surface)
+                          .rounded("xl")
+                        article do
+                          text("Readiness").text_style(:headline).accessibility_heading(level: 2)
+                          gauge(value: component.mission.fetch("readiness"), label: "Readiness")
+                        end
+                          .padding(4)
+                          .background_style(:surface)
+                          .rounded("xl")
+                        article do
+                          text("Systems").text_style(:headline).accessibility_heading(level: 2)
+                          text(component.systems.length.to_s).text_style(:title)
+                        end
+                          .padding(4)
+                          .background_style(:surface)
+                          .rounded("xl")
+                      end
+
+                      vstack(alignment: :leading, spacing: 8) do
+                        component.systems.each do |system|
+                          hstack(id: "system-#{system.fetch("id")}", spacing: 8) do
+                            text(system.fetch("name")).text_style(:body)
+                            spacer
+                            if system.fetch("operational")
+                              badge("Operational", tone: :success)
+                            else
+                              badge("Attention", tone: :warning)
+                            end
+                          end
+                            .padding(4)
+                            .background_style(:surface)
+                            .rounded("lg")
+                        end
+                      end
+                    end
+                      .padding(6)
+                      .background_style(:canvas)
+                      .rounded("2xl")
+                  end
+                end
+              end
+        production_support:
+          - path: app/views/missions/show.html.erb
+            content: |
+              <%= render TokenBenchmarks::MissionReadinessComponent.new(mission: @benchmark_data.fetch("mission"), systems: @benchmark_data.fetch("systems")) %>
+          - path: Gemfile.swift_ui_rails
+            content: |
+              gem "swift_ui_rails"

@@ -1,0 +1,94 @@
+# Security-hardened Docker Compose configuration
+# Use with: docker-compose -f docker-compose.yml -f docker-compose.security.yml up
+
+version: '3.8'
+
+services:
+  web:
+    # Security options
+    security_opt:
+      - no-new-privileges:true
+      - apparmor:docker-default
+      - seccomp:unconfined
+    
+    # Read-only root filesystem
+    read_only: true
+    
+    # Temporary filesystems for writable directories
+    tmpfs:
+      - /tmp
+      - /rails/tmp
+      - /rails/log
+    
+    # Volume mounts with proper permissions
+    volumes:
+      - type: volume
+        source: rails_storage
+        target: /rails/storage
+        read_only: false
+      - type: volume
+        source: rails_db
+        target: /rails/db
+        read_only: false
+    
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 1024M
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    
+    # Disable privilege escalation
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - DAC_OVERRIDE
+      - FOWNER
+      - SETGID
+      - SETUID
+    
+    # Network isolation
+    networks:
+      - rails_network
+    
+    # Environment variables (never put secrets here)
+    environment:
+      - RAILS_LOG_TO_STDOUT=true
+      - RAILS_SERVE_STATIC_FILES=true
+      - RAILS_ENV=production
+      - NODE_ENV=production
+    
+    # Health check
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/up"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  rails_storage:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./storage
+  rails_db:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./db
+
+networks:
+  rails_network:
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.name: rails_br
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

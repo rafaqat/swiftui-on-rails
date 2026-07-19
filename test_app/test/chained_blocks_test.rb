@@ -1,52 +1,34 @@
 require "test_helper"
 
 class ChainedBlocksTest < ActiveSupport::TestCase
-  test "card with chained padding and block" do
-    view = ActionView::Base.new(ActionView::LookupContext.new([]), {}, nil)
-    view.extend(SwiftUIRails::Helpers)
-    
-    # This is exactly how it's used in the home page
-    result = view.swift_ui do
-      card(elevation: 2).p(6) { 
-        text("Inside card with padding")
-      }
-    end
-    
-    puts "\n=== Card with chained padding result ==="
-    puts result
-    
-    assert result.include?("Inside card with padding"), "Should contain text inside card"
-    assert result.include?("p-6"), "Should have padding class"
-    assert result.include?("shadow-md"), "Should have elevation shadow"
-  end
-  
-  test "complex nested structure like home page" do
-    view = ActionView::Base.new(ActionView::LookupContext.new([]), {}, nil)
-    view.extend(SwiftUIRails::Helpers)
-    
-    result = view.swift_ui do
-      vstack(spacing: 24).p(8).max_w("4xl").mx("auto") { 
+  test "nested modifier chains render their blocks and styles" do
+    result = build_view.swift_ui do
+      vstack(spacing: 24).p(8).max_w("4xl").mx("auto") do
         text("Header")
-        
-        card(elevation: 2).p(6) { 
-          vstack(spacing: 16) { 
-            text("Inside nested vstack")
-            
-            hstack(spacing: 12) { 
-              button("Button 1")
-              button("Button 2")
-            }
-          }
-        }
-      }
+        card(elevation: 2).p(6) do
+          hstack(spacing: 12) do
+            button("Button 1")
+            button("Button 2")
+          end
+        end
+      end
     end
-    
-    puts "\n=== Complex nested structure result ==="
-    puts result
-    
-    assert result.include?("Header"), "Should include header text"
-    assert result.include?("bg-white rounded-lg shadow-md"), "Should include card styling"
-    assert result.include?("flex flex-col"), "Should include vstack styling"
-    assert result.include?("p-8"), "Should include padding"
+
+    fragment = Nokogiri::HTML.fragment(result)
+    outer = fragment.at_css("div.flex.flex-col.p-8.max-w-4xl.mx-auto")
+    card = outer&.at_css("div.bg-white.rounded-lg.shadow-md.p-6")
+
+    assert outer, "Expected the outer modifier chain to render"
+    assert card, "Expected the chained card to render"
+    assert_equal ["Button 1", "Button 2"], card.css("button").map(&:text)
+    assert_equal 1, fragment.css("span").count { |node| node.text == "Header" }
+  end
+
+  private
+
+  def build_view
+    ActionView::Base.new(ActionView::LookupContext.new([]), {}, nil).tap do |view|
+      view.extend(SwiftUIRails::Helpers)
+    end
   end
 end

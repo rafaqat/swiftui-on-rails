@@ -6,22 +6,21 @@ class StatelessComponentsTest < ApplicationSystemTestCase
   test "filters update URL and content" do
     visit stateless_demo_path
     
-    # Initially shows all products
+    # The first page shows the first three products.
     assert_text "iPhone 15 Pro"
-    assert_text "Nike Air Max"
-    assert_text "Levi's 501"
+    assert_text "MacBook Air M2"
+    assert_text "AirPods Pro"
     
     # Filter by category
     select "Electronics", from: "filter_category"
-    
-    # URL should update
-    assert_current_path(/filters\[category\]=electronics/)
+    click_button "Apply Filters"
     
     # Only electronics should show
     assert_text "iPhone 15 Pro"
     assert_text "MacBook Air M2"
     assert_no_text "Nike Air Max"
     assert_no_text "Levi's 501"
+    assert_equal "electronics", current_query_parameters.dig("filters", "category")
   end
   
   test "pagination works through URL params" do
@@ -90,7 +89,7 @@ class StatelessComponentsTest < ApplicationSystemTestCase
     visit stateless_demo_path(tab: "about")
     
     # No modal initially
-    assert_no_selector "#modal-backdrop"
+    assert_no_selector "dialog#modal[open]"
     
     # Click to open modal
     click_link "Open Info Modal"
@@ -99,19 +98,19 @@ class StatelessComponentsTest < ApplicationSystemTestCase
     assert_current_path(/modal=info/)
     
     # Modal should be visible
-    assert_selector "#modal-backdrop"
+    assert_selector "dialog#modal[open]"
     assert_text "Stateless Modal Example"
     
     # Click close button
     within '[role="dialog"]' do
-      click_link "Close"
+      find("a.swift-ui-dialog-close").click
     end
     
     # Modal param should be removed
     refute_current_path(/modal=/)
     
     # Modal should be gone
-    assert_no_selector "#modal-backdrop"
+    assert_no_selector "dialog#modal[open]"
   end
   
   test "combined filters and pagination maintain state" do
@@ -119,6 +118,7 @@ class StatelessComponentsTest < ApplicationSystemTestCase
     
     # Apply filter
     select "Shoes", from: "filter_category"
+    click_button "Apply Filters"
     
     # Should show filtered results
     assert_text "Nike Air Max"
@@ -130,26 +130,26 @@ class StatelessComponentsTest < ApplicationSystemTestCase
       click_link "Next →"
       
       # URL should have both filter and page params
-      assert_current_path(/filters\[category\]=shoes/)
       assert_current_path(/page=2/)
+      assert_equal "shoes", current_query_parameters.dig("filters", "category")
     end
   end
   
-  test "progressive enhancement with search" do
+  test "search submits through the native Rails form" do
     visit stateless_demo_path
-    
-    # Type in search box (simulating live search)
+
     fill_in "q", with: "app"
-    
-    # Wait a bit for debounced search (if JS is enabled)
-    sleep 0.5
-    
-    # Should still work by clicking Search button
     click_button "Search"
-    
-    # Results should show
+
+    assert_current_path(/q=app/)
     within "#search_results" do
       assert_text "Apple"
     end
+  end
+
+  private
+
+  def current_query_parameters
+    Rack::Utils.parse_nested_query(URI.parse(page.current_url).query.to_s)
   end
 end

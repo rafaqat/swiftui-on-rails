@@ -1,44 +1,35 @@
 require "test_helper"
 
 class RenderInDslTest < ActiveSupport::TestCase
-  test "render ViewComponent inside DSL" do
-    view = ActionView::Base.new(ActionView::LookupContext.new([]), {}, nil)
-    view.extend(SwiftUIRails::Helpers)
-    
-    # Test rendering a component inside DSL
-    result = view.swift_ui do
+  test "render embeds a ViewComponent inside a DSL element" do
+    result = build_view.swift_ui do
       div do
-        # Try to render ExampleComponent
-        puts "=== Attempting to render ExampleComponent ==="
-        rendered = render ExampleComponent.new(title: "Test Title")
-        puts "Rendered class: #{rendered.class}"
-        puts "Rendered content: #{rendered.inspect[0..200]}..."
-        rendered
+        render ExampleComponent.new(title: "Nested component")
       end
     end
-    
-    puts "\n=== Final result ==="
-    puts result
-    
-    # Check if the component was rendered (it renders as a card div)
-    assert result.include?('<div></div>'), "Should include the outer div"
+
+    fragment = Nokogiri::HTML.fragment(result)
+    wrapper = fragment.at_css("div")
+
+    assert_equal "Nested component", wrapper&.at_css("span.text-2xl.font-bold")&.text
+    assert wrapper&.at_css("div.bg-white.rounded-lg.shadow-md.p-6")
+    assert_equal 1, fragment.css("span").count { |node| node.text == "Nested component" }
   end
-  
-  test "render returns wrong type" do
-    view = ActionView::Base.new(ActionView::LookupContext.new([]), {}, nil)
-    view.extend(SwiftUIRails::Helpers)
-    
-    # Check what render actually returns
-    dsl_context = SwiftUIRails::DSLContext.new(view)
-    
-    puts "\n=== What does render return? ==="
-    begin
-      component = ExampleComponent.new(title: "Debug Test")
-      result = dsl_context.render(component)
-      puts "render returned: #{result.class}"
-      puts "render content: #{result.inspect[0..200]}..."
-    rescue => e
-      puts "render failed: #{e.class} - #{e.message}"
+
+  test "DSL context render delegates to the view and returns safe HTML" do
+    context = SwiftUIRails::DSLContext.new(build_view)
+    result = context.render(ExampleComponent.new(title: "Delegated render"))
+
+    assert_predicate result, :html_safe?
+    assert_includes result, "Delegated render"
+    assert_includes result, "bg-white rounded-lg shadow-md p-6"
+  end
+
+  private
+
+  def build_view
+    ActionView::Base.new(ActionView::LookupContext.new([]), {}, nil).tap do |view|
+      view.extend(SwiftUIRails::Helpers)
     end
   end
 end

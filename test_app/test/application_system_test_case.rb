@@ -8,6 +8,14 @@ class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
   
   # DO NOT include ViewComponent::SystemTestHelpers here - it conflicts with Capybara DSL
   # We'll handle ViewComponent rendering separately when needed
+
+  include DemoSystemHelpers
+
+  setup do
+    # Selenium retains browser log entries between test examples. Drain them so
+    # a test can only fail on console errors produced by its own navigation.
+    page.driver.browser.logs.get(:browser)
+  end
   
   # Helper to check for browser console errors
   def assert_no_console_errors

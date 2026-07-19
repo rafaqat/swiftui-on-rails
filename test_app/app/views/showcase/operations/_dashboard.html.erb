@@ -1,0 +1,112 @@
+<% summary = state.summary %>
+<% status_styles = {
+  "operational" => "border-emerald-400/30 bg-emerald-400/10 text-emerald-200",
+  "degraded" => "border-rose-400/30 bg-rose-400/10 text-rose-200",
+  "deploying" => "border-amber-400/30 bg-amber-400/10 text-amber-200"
+} %>
+
+<section id="operations-dashboard" aria-live="polite">
+  <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+    <article class="rounded-2xl border border-white/10 bg-gradient-to-br from-cyan-400/15 to-transparent p-5">
+      <p class="text-sm text-slate-400">Operational services</p>
+      <p class="mt-2 text-4xl font-black text-white" data-testid="operational-count"><%= summary[:operational] %>/<%= summary[:total] %></p>
+      <p class="mt-2 text-xs font-semibold uppercase tracking-wider text-cyan-300">Live health</p>
+    </article>
+    <article class="rounded-2xl border border-white/10 bg-white/5 p-5">
+      <p class="text-sm text-slate-400">Average latency</p>
+      <p class="mt-2 text-4xl font-black text-white"><%= summary[:average_latency] %><span class="ml-1 text-lg text-slate-400">ms</span></p>
+      <div class="mt-3 h-1.5 overflow-hidden rounded-full bg-white/10"><div class="h-full rounded-full bg-violet-400" style="width: <%= [summary[:average_latency], 100].min %>%"></div></div>
+    </article>
+    <article class="rounded-2xl border border-white/10 bg-white/5 p-5">
+      <p class="text-sm text-slate-400">Deployments</p>
+      <p class="mt-2 text-4xl font-black text-white" data-testid="deployment-count"><%= summary[:deployments] %></p>
+      <p class="mt-2 text-xs text-slate-400">This session</p>
+    </article>
+    <article class="rounded-2xl border border-white/10 bg-white/5 p-5">
+      <p class="text-sm text-slate-400">Incidents</p>
+      <p class="mt-2 text-4xl font-black <%= summary[:incidents].positive? ? "text-rose-300" : "text-emerald-300" %>" data-testid="incident-count"><%= summary[:incidents] %></p>
+      <p class="mt-2 text-xs text-slate-400">Detected and retained</p>
+    </article>
+  </div>
+
+  <div class="mt-6 grid gap-6 xl:grid-cols-[1.65fr_1fr]">
+    <section>
+      <div class="mb-4 flex items-center justify-between">
+        <div>
+          <p class="text-xs font-bold uppercase tracking-[0.25em] text-cyan-300">Service mesh</p>
+          <h2 class="mt-1 text-2xl font-black text-white">Production services</h2>
+        </div>
+        <%= button_to "Run all health checks",
+              showcase_operations_events_path,
+              params: { event_type: "heartbeat", service_id: "api" },
+              class: "rounded-xl border border-cyan-300/30 bg-cyan-300/10 px-4 py-2 text-sm font-bold text-cyan-100 hover:bg-cyan-300/20",
+              form: { data: { turbo_stream: true } } %>
+      </div>
+
+      <div class="grid gap-4 lg:grid-cols-3">
+        <% state.services.each do |service_id, service| %>
+          <article class="rounded-2xl border border-white/10 bg-slate-900 p-5" data-service-id="<%= service_id %>">
+            <div class="flex items-start justify-between gap-3">
+              <div>
+                <h3 class="font-bold text-white"><%= service["name"] %></h3>
+                <p class="mt-1 font-mono text-xs text-slate-400">v<%= service["version"] %></p>
+              </div>
+              <span class="rounded-full border px-2.5 py-1 text-xs font-bold <%= status_styles.fetch(service["status"]) %>" data-testid="<%= service_id %>-status"><%= service["status"].capitalize %></span>
+            </div>
+
+            <dl class="mt-5 grid grid-cols-2 gap-3 text-sm">
+              <div class="rounded-xl bg-white/5 p-3">
+                <dt class="text-slate-400">Latency</dt>
+                <dd class="mt-1 font-bold text-white"><%= service["latency"] %> ms</dd>
+              </div>
+              <div class="rounded-xl bg-white/5 p-3">
+                <dt class="text-slate-400">Capacity</dt>
+                <dd class="mt-1 font-bold text-white"><%= service["capacity"] %>%</dd>
+              </div>
+            </dl>
+
+            <div class="mt-4 grid grid-cols-2 gap-2">
+              <%= button_to "Deploy", showcase_operations_events_path,
+                    params: { event_type: "deploy", service_id: service_id },
+                    class: "w-full rounded-lg bg-violet-600 px-3 py-2 text-xs font-bold text-white hover:bg-violet-500",
+                    form: { data: { turbo_stream: true } } %>
+              <%= button_to "Scale +10", showcase_operations_events_path,
+                    params: { event_type: "scale", service_id: service_id },
+                    class: "w-full rounded-lg bg-slate-700 px-3 py-2 text-xs font-bold text-white hover:bg-slate-600",
+                    form: { data: { turbo_stream: true } } %>
+              <%= button_to "Trigger incident", showcase_operations_events_path,
+                    params: { event_type: "incident", service_id: service_id },
+                    class: "w-full rounded-lg border border-rose-400/30 px-3 py-2 text-xs font-bold text-rose-200 hover:bg-rose-400/10",
+                    form: { data: { turbo_stream: true } } %>
+              <%= button_to "Recover", showcase_operations_events_path,
+                    params: { event_type: "recover", service_id: service_id },
+                    class: "w-full rounded-lg border border-emerald-400/30 px-3 py-2 text-xs font-bold text-emerald-200 hover:bg-emerald-400/10",
+                    form: { data: { turbo_stream: true } } %>
+            </div>
+          </article>
+        <% end %>
+      </div>
+    </section>
+
+    <aside class="rounded-2xl border border-white/10 bg-slate-900 p-5">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-xs font-bold uppercase tracking-[0.25em] text-violet-300">Audit trail</p>
+          <h2 class="mt-1 text-xl font-black text-white">Recent activity</h2>
+        </div>
+        <span class="rounded-full bg-white/5 px-2 py-1 text-xs text-slate-400"><%= state.activity.length %> events</span>
+      </div>
+
+      <ol class="mt-5 space-y-4" data-testid="activity-feed">
+        <% state.activity.each do |event| %>
+          <% dot_color = case event["severity"] when "critical" then "bg-rose-400" when "success" then "bg-emerald-400" else "bg-cyan-400" end %>
+          <li class="relative pl-6">
+            <span class="absolute left-0 top-1.5 h-2.5 w-2.5 rounded-full <%= dot_color %>"></span>
+            <p class="text-sm font-semibold text-slate-200"><%= event["message"] %></p>
+            <p class="mt-1 text-xs text-slate-400"><%= event["service_name"] %> · <%= Time.zone.parse(event["timestamp"])&.strftime("%H:%M:%S") %></p>
+          </li>
+        <% end %>
+      </ol>
+    </aside>
+  </div>
+</section>

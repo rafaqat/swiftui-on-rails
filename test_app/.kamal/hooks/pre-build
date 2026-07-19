@@ -1,0 +1,160 @@
+#!/bin/bash
+# SECURITY: Secure pre-build hook for Kamal deployments
+# This script validates git state before building Docker images
+set -euo pipefail
+
+# Enable debug mode if KAMAL_DEBUG is set
+if [ "${KAMAL_DEBUG:-false}" = "true" ]; then
+  set -x
+fi
+
+# SECURITY: Log hook execution for audit trail
+echo "[$(date -u +"%Y-%m-%d %H:%M:%S UTC")] Pre-build hook started by ${KAMAL_PERFORMER:-unknown}"
+echo "Environment: ${KAMAL_DESTINATION:-production}"
+echo "Version: ${KAMAL_VERSION:-unknown}"
+
+# Function to safely escape shell arguments
+quote_arg() {
+  printf '%q' "$1"
+}
+
+# SECURITY: Validate environment variables
+for var in KAMAL_VERSION KAMAL_RECORDED_AT KAMAL_PERFORMER; do
+  if [ -z "${!var:-}" ]; then
+    echo "ERROR: Required environment variable $var is not set" >&2
+    exit 1
+  fi
+done
+
+# SECURITY: Check for clean git status
+if [ -n "$(git status --porcelain)" ]; then
+  echo "ERROR: Git checkout is not clean, aborting..." >&2
+  echo "Uncommitted changes:" >&2
+  git status --porcelain >&2
+  echo >&2
+  echo "Please commit or stash your changes before deploying" >&2
+  exit 1
+fi
+
+# SECURITY: Get and validate git remote
+first_remote=$(git remote | head -n1)
+
+if [ -z "$first_remote" ]; then
+  echo "ERROR: No git remote configured" >&2
+  echo "Add a remote with: git remote add origin <url>" >&2
+  exit 1
+fi
+
+# Validate remote name format to prevent command injection
+if [[ ! "$first_remote" =~ ^[a-zA-Z0-9_.-]+$ ]]; then
+  echo "ERROR: Invalid remote name format: $(quote_arg "$first_remote")" >&2
+  echo "Remote names must contain only alphanumeric characters, dots, dashes, and underscores" >&2
+  exit 1
+fi
+
+# SECURITY: Get and validate current branch
+current_branch=$(git branch --show-current)
+
+if [ -z "$current_branch" ]; then
+  # Check if we're in detached HEAD state
+  if git symbolic-ref -q HEAD >/dev/null 2>&1; then
+    echo "ERROR: Unable to determine current branch" >&2
+  else
+    echo "ERROR: In detached HEAD state, not on a branch" >&2
+    echo "Checkout a branch before deploying" >&2
+  fi
+  exit 1
+fi
+
+# Validate branch name format to prevent command injection
+if [[ ! "$current_branch" =~ ^[a-zA-Z0-9/_.-]+$ ]]; then
+  echo "ERROR: Invalid branch name format: $(quote_arg "$current_branch")" >&2
+  echo "Branch names must contain only alphanumeric characters, slashes, dots, dashes, and underscores" >&2
+  exit 1
+fi
+
+# SECURITY: Check if branch exists on remote (properly quoted)
+echo "Checking if branch '$current_branch' exists on remote '$first_remote'..."
+remote_head=$(git ls-remote "$(quote_arg "$first_remote")" "refs/heads/$(quote_arg "$current_branch")" 2>/dev/null | cut -f1)
+
+if [ -z "$remote_head" ]; then
+  echo "ERROR: Branch '$current_branch' not found on remote '$first_remote'" >&2
+  echo "Push your branch with: git push $(quote_arg "$first_remote") $(quote_arg "$current_branch")" >&2
+  exit 1
+fi
+
+# SECURITY: Validate git SHA format
+if [[ ! "$remote_head" =~ ^[a-f0-9]{40}$ ]]; then
+  echo "ERROR: Invalid git SHA format from remote: $(quote_arg "$remote_head")" >&2
+  echo "This may indicate a corrupted git repository" >&2
+  exit 1
+fi
+
+# SECURITY: Validate KAMAL_VERSION format
+if [[ ! "$KAMAL_VERSION" =~ ^[a-f0-9]{40}$ ]]; then
+  echo "ERROR: Invalid KAMAL_VERSION format: $(quote_arg "$KAMAL_VERSION")" >&2
+  echo "KAMAL_VERSION must be a valid git SHA (40 hex characters)" >&2
+  exit 1
+fi
+
+# SECURITY: Verify local and remote are in sync
+local_head=$(git rev-parse HEAD)
+
+if [ "$local_head" != "$remote_head" ]; then
+  echo "WARNING: Local HEAD ($local_head) differs from remote HEAD ($remote_head)" >&2
+  
+  # Check if we're ahead or behind
+  ahead=$(git rev-list --count "$remote_head..$local_head" 2>/dev/null || echo "0")
+  behind=$(git rev-list --count "$local_head..$remote_head" 2>/dev/null || echo "0")
+  
+  if [ "$ahead" -gt 0 ]; then
+    echo "You have $ahead unpushed commit(s)" >&2
+  fi
+  
+  if [ "$behind" -gt 0 ]; then
+    echo "You are $behind commit(s) behind the remote" >&2
+  fi
+fi
+
+# SECURITY: Verify deployment version matches expected version
+if [ "$KAMAL_VERSION" != "$remote_head" ]; then
+  echo "ERROR: Deployment version mismatch" >&2
+  echo "  KAMAL_VERSION: $KAMAL_VERSION" >&2
+  echo "  Remote HEAD:   $remote_head" >&2
+  echo >&2
+  echo "This may indicate:" >&2
+  echo "  - Unpushed commits (run: git push $first_remote $current_branch)" >&2
+  echo "  - Stale deployment configuration" >&2
+  echo "  - Concurrent deployments" >&2
+  exit 1
+fi
+
+# SECURITY: Additional security checks
+echo "Running additional security checks..."
+
+# Check for sensitive files that shouldn't be deployed
+sensitive_files=(
+  "config/master.key"
+  ".env"
+  ".env.production"
+  "config/credentials/*.key"
+  "*.pem"
+  "*.p12"
+)
+
+for pattern in "${sensitive_files[@]}"; do
+  if compgen -G "$pattern" > /dev/null 2>&1; then
+    echo "WARNING: Sensitive file pattern '$pattern' found in repository" >&2
+    echo "Ensure these files are in .gitignore and .dockerignore" >&2
+  fi
+done
+
+# Success
+echo "✓ Git state validated successfully"
+echo "  Remote: $first_remote"
+echo "  Branch: $current_branch"
+echo "  Version: $KAMAL_VERSION"
+echo "  Performer: $KAMAL_PERFORMER"
+echo "  Time: $(date -u +"%Y-%m-%d %H:%M:%S UTC")"
+
+exit 0

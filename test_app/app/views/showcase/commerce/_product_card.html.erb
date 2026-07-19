@@ -1,0 +1,42 @@
+<article class="commerce-product-card" id="product-<%= product.id %>">
+  <div class="commerce-product-art commerce-art--<%= product.tone %>">
+    <% if product.badge.present? %>
+      <span class="commerce-product-badge"><%= product.badge %></span>
+    <% end %>
+    <span class="commerce-product-symbol" aria-hidden="true"><%= product.symbol %></span>
+    <span class="commerce-art-shadow" aria-hidden="true"></span>
+  </div>
+
+  <div class="commerce-product-copy">
+    <p class="commerce-product-category"><%= product.category_name %></p>
+    <h3><%= product.name %></h3>
+    <p class="commerce-product-description"><%= product.description %></p>
+    <div class="commerce-rating" aria-label="Rated <%= product.rating %> out of 5 from <%= product.reviews %> reviews">
+      <span aria-hidden="true">★★★★★</span>
+      <small><%= product.rating %> · <%= product.reviews %></small>
+    </div>
+    <div class="commerce-product-footer">
+      <div>
+        <strong><%= number_to_currency(product.price_cents / 100.0, unit: "£") %></strong>
+        <small class="<%= "commerce-sold-out" unless product.in_stock? %>">
+          <%= product.in_stock? ? "#{product.stock} ready to dispatch" : "Currently unavailable" %>
+        </small>
+      </div>
+      <div class="commerce-product-actions">
+        <%= link_to "Details",
+              showcase_commerce_product_path(product.id),
+              class: "commerce-detail-link",
+              data: { turbo_frame: "commerce_quick_view" },
+              aria: { label: "View details for #{product.name}" } %>
+        <%= form_with url: showcase_commerce_cart_items_path, method: :post do |form| %>
+          <%= form.hidden_field :product_id, value: product.id %>
+          <%= form.hidden_field :quantity, value: 1 %>
+          <%= form.submit product.in_stock? ? "+" : "×",
+                class: "commerce-add-button",
+                disabled: !product.in_stock?,
+                aria: { label: product.in_stock? ? "Add #{product.name} to bag" : "#{product.name} is sold out" } %>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</article>

@@ -1,0 +1,49 @@
+#!/bin/bash
+# SECURITY: Pre-deploy validation hook
+set -euo pipefail
+
+echo "[$(date -u +"%Y-%m-%d %H:%M:%S UTC")] Pre-deploy hook started"
+
+# SECURITY: Validate required environment variables
+required_vars=(
+  "KAMAL_VERSION"
+  "KAMAL_PERFORMER"
+  "KAMAL_HOSTS"
+)
+
+for var in "${required_vars[@]}"; do
+  if [ -z "${!var:-}" ]; then
+    echo "ERROR: Required environment variable $var is not set" >&2
+    exit 1
+  fi
+done
+
+# SECURITY: Validate hosts format to prevent injection
+IFS=',' read -ra HOSTS <<< "$KAMAL_HOSTS"
+for host in "${HOSTS[@]}"; do
+  # Validate IP address or hostname format
+  if [[ ! "$host" =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]] && \
+     [[ ! "$host" =~ ^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$ ]]; then
+    echo "ERROR: Invalid host format: $host" >&2
+    echo "Hosts must be valid IP addresses or hostnames" >&2
+    exit 1
+  fi
+done
+
+# SECURITY: Check deployment environment
+if [ "${KAMAL_DESTINATION:-production}" = "production" ]; then
+  echo "⚠️  WARNING: Deploying to PRODUCTION environment"
+  echo "Performer: $KAMAL_PERFORMER"
+  echo "Version: $KAMAL_VERSION"
+  echo "Hosts: $KAMAL_HOSTS"
+  
+  # In production, require explicit confirmation via environment variable
+  if [ "${KAMAL_PRODUCTION_CONFIRMED:-false}" != "true" ]; then
+    echo "ERROR: Production deployment requires confirmation" >&2
+    echo "Set KAMAL_PRODUCTION_CONFIRMED=true to proceed" >&2
+    exit 1
+  fi
+fi
+
+echo "✓ Pre-deploy validation passed"
+exit 0

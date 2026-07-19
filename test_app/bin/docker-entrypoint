@@ -1,4 +1,6 @@
-#!/bin/bash -e
+#!/bin/bash
+# SECURITY: Use strict error handling and undefined variable checking
+set -euo pipefail
 
 # Enable jemalloc for reduced memory usage and latency.
 if [ -z "${LD_PRELOAD+x}" ]; then
@@ -6,9 +8,46 @@ if [ -z "${LD_PRELOAD+x}" ]; then
     export LD_PRELOAD
 fi
 
-# If running the rails server then create or migrate existing database
-if [ "${@: -2:1}" == "./bin/rails" ] && [ "${@: -1:1}" == "server" ]; then
-  ./bin/rails db:prepare
+# SECURITY: Validate environment
+if [ -z "${RAILS_ENV:-}" ]; then
+  echo "ERROR: RAILS_ENV not set" >&2
+  exit 1
 fi
+
+# SECURITY: Only allow specific RAILS_ENV values
+case "${RAILS_ENV}" in
+  production|staging|development)
+    ;;
+  *)
+    echo "ERROR: Invalid RAILS_ENV: ${RAILS_ENV}" >&2
+    exit 1
+    ;;
+esac
+
+# SECURITY: Check if running as non-root
+if [ "$(id -u)" = "0" ]; then
+  echo "WARNING: Running as root is not recommended" >&2
+fi
+
+# If running the rails server then create or migrate existing database
+if [ "${#}" -ge 2 ] && [ "${@: -2:1}" = "./bin/rails" ] && [ "${@: -1:1}" = "server" ]; then
+  # SECURITY: Only run migrations in development/staging
+  if [ "${RAILS_ENV}" != "production" ]; then
+    ./bin/rails db:prepare
+  else
+    # In production, only check if database exists
+    ./bin/rails db:version || {
+      echo "ERROR: Database not initialized. Run migrations separately." >&2
+      exit 1
+    }
+  fi
+fi
+
+# SECURITY: Log startup for audit trail
+echo "[$(date -u +"%Y-%m-%d %H:%M:%S UTC")] Starting Rails application as user $(id -un) (UID: $(id -u), GID: $(id -g))"
+
+# SECURITY: Clear sensitive environment variables
+unset DATABASE_PASSWORD
+unset RAILS_MASTER_KEY
 
 exec "${@}"

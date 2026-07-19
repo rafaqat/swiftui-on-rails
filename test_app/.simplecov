@@ -1,22 +1,24 @@
-# SimpleCov configuration
-SimpleCov.start 'rails' do
+# SimpleCov configuration. Coverage starts explicitly from test/test_helper.rb.
+SimpleCov.configure do
+  root File.expand_path("..", __dir__)
+  coverage_dir "test_app/tmp/coverage"
+
   # Custom configuration for SwiftUI Rails
-  add_filter '/test/'
-  add_filter '/config/'
-  add_filter '/db/'
-  add_filter '/vendor/'
-  add_filter '/.bundle/'
+  cover "lib/**/*.rb", "test_app/app/**/*.rb", "view_component_storybook_rails8/lib/**/*.rb"
+
+  skip "/test/"
+  skip "/config/"
+  skip "/db/"
+  skip "/vendor/"
+  skip "/.bundle/"
   
   # Group files for better organization
-  add_group 'Components', 'app/components'
-  add_group 'Controllers', 'app/controllers'
-  add_group 'Helpers', 'app/helpers'
-  add_group 'Models', 'app/models'
-  add_group 'JavaScript', 'app/javascript'
-  add_group 'SwiftUI Rails', proc { |src| src.filename.include?('/swift_ui_rails/') }
-  
-  # Set coverage expectations (lowered initially to get baseline)
-  minimum_coverage 50
+  group "Components", "test_app/app/components"
+  group "Controllers", "test_app/app/controllers"
+  group "Helpers", "test_app/app/helpers"
+  group "Models", "test_app/app/models"
+  group "Storybook fork", "view_component_storybook_rails8/lib"
+  group "SwiftUI Rails", proc { |src| src.filename.include?("/swift_ui_rails/") }
   
   # Enable branch coverage
   enable_coverage :branch

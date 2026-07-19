@@ -1,0 +1,30 @@
+<% form_error = local_assigns[:error] %>
+<% form_value = local_assigns[:value].to_s %>
+
+<%= form_with url: rails_first_demo_add_todo_path, method: :post, id: "todo-form", class: "space-y-2" do |form| %>
+  <div class="flex flex-col gap-3 sm:flex-row">
+    <div class="min-w-0 flex-1">
+      <%= form.label :todo_text, "New task", class: "sr-only" %>
+      <%= form.text_field :todo_text,
+        value: form_value,
+        id: "todo_text",
+        maxlength: RailsFirstDemoController::MAX_TODO_LENGTH,
+        required: true,
+        autocomplete: "off",
+        placeholder: "Add a concrete next step…",
+        aria: {
+          invalid: form_error.present?,
+          describedby: form_error.present? ? "todo-form-error" : "todo-form-hint"
+        },
+        class: "w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-violet-500 focus:ring-4 focus:ring-violet-100" %>
+    </div>
+    <%= form.submit "Add task",
+      class: "cursor-pointer rounded-xl bg-slate-950 px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-violet-700 focus:outline-none focus:ring-4 focus:ring-violet-200" %>
+  </div>
+
+  <% if form_error.present? %>
+    <p id="todo-form-error" class="text-sm font-medium text-rose-700" role="alert"><%= form_error %></p>
+  <% else %>
+    <p id="todo-form-hint" class="text-xs text-slate-500">Up to <%= RailsFirstDemoController::MAX_TODO_LENGTH %> characters and <%= RailsFirstDemoController::MAX_TODOS %> tasks. Stored only in this browser session.</p>
+  <% end %>
+<% end %>

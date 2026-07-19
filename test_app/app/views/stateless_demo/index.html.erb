@@ -91,14 +91,15 @@
           <ul class="list-disc list-inside space-y-2 text-gray-700">
             <li>URL-driven state (filters, pagination, tabs)</li>
             <li>Form-based interactions with Turbo morphing</li>
-            <li>Progressive enhancement with Stimulus</li>
-            <li>Works without JavaScript, enhanced with it</li>
+            <li>Progressive enhancement through declared RenderIR behavior</li>
+            <li>Works before the gem-owned runtime connects</li>
           </ul>
           
           <div class="mt-6">
             <%= link_to "Open Info Modal", 
                 stateless_demo_path(tab: @current_tab, modal: "info"),
-                class: "inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700" %>
+                class: "inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700",
+                data: { turbo_frame: "_top" } %>
           </div>
         </div>
         
@@ -116,7 +117,7 @@
             </div>
             <div>
               <h3 class="font-semibold mb-2">Search</h3>
-              <p>Works as a regular form submission. Enhanced with Stimulus for live search (debounced).</p>
+              <p>Works as a regular form submission. A declared, framework-owned debounce command may accelerate it without adding application JavaScript.</p>
             </div>
             <div>
               <h3 class="font-semibold mb-2">Tabs</h3>

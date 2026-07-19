@@ -20,7 +20,10 @@ Rails.application.configure do
 
   # Show full error reports.
   config.consider_all_requests_local = true
-  config.cache_store = :null_store
+  # Storybook and the reactive action transport cross real HTTP requests in
+  # system tests. Use the same bounded, process-local persistence semantics as
+  # development so props/state cannot silently reset between those requests.
+  config.cache_store = :memory_store, { size: 16.megabytes }
 
   # Render exception templates for rescuable exceptions and raise for other exceptions.
   config.action_dispatch.show_exceptions = :rescuable

@@ -3,38 +3,18 @@
 require "application_system_test_case"
 
 class ProductLayoutVisualTest < ApplicationSystemTestCase
-  test "product layout with top filters renders correctly" do
-    visit "/storybook/show?story=product_layout"
-    
-    # Wait for page to load
-    assert_selector "h1", text: "Product Layout"
-    
+  test "four-column layout renders sorting and the full product set" do
+    visit storybook_show_path(story: "product_layout_simple", story_variant: "four_column_grid")
+
     within "#component-preview" do
-      # Check header
-      assert_text "Products"
+      assert_text "Four Column Layout"
       assert_text "8 items"
-      
-      # Check filter bar exists and shows results count
-      assert_selector ".bg-white.p-6.rounded-lg.shadow-sm"
-      assert_text "24 Results"
-      
-      # Check filters are visible
-      assert_text "Filters"
-      assert_text "Price"
-      assert_text "Color"
-      assert_text "Category"
-      
-      # Check products are displayed
-      assert_text "Basic Tee"
+      assert_selector ".grid.grid-cols-1.sm\\:grid-cols-2.lg\\:grid-cols-3.xl\\:grid-cols-4.gap-6"
+      assert_selector "select option[value='popular']", text: "Most Popular", visible: :all
+      assert_selector "select option[value='price_asc']", text: "Price: Low to High", visible: :all
+      assert_selector "img", count: 8
       assert_text "Leather Jacket"
-      assert_text "$35"
       assert_text "$250"
-      
-      # Check CTA buttons
-      assert_text "Add to cart", minimum: 8
     end
-    
-    # Take screenshot for visual reference
-    take_screenshot
   end
 end

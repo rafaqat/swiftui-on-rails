@@ -1,3 +1,4 @@
 #!/bin/sh
+set -euo pipefail
 
-echo "Booting app version $KAMAL_VERSION on $KAMAL_HOSTS..."
+echo "Booting app version ${KAMAL_VERSION:-} on ${KAMAL_HOSTS:-}..."

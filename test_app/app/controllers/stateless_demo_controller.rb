@@ -1,6 +1,10 @@
 # frozen_string_literal: true
 
 class StatelessDemoController < ApplicationController
+  TABS = %w[products about help].freeze
+  FILTER_KEYS = %w[category brand color].freeze
+  MAX_SEARCH_QUERY_LENGTH = 100
+
   # Demo data
   SAMPLE_PRODUCTS = [
     { id: 1, name: "iPhone 15 Pro", category: "electronics", brand: "apple", price: 999, color: "titanium" },
@@ -17,23 +21,27 @@ class StatelessDemoController < ApplicationController
   
   def index
     # Handle filters from URL params
-    @filters = params[:filters] || {}
+    permitted_filters = params.permit(filters: %i[category brand color])[:filters]
+    @filters = normalize_filters(permitted_filters&.to_h || {})
     @products = filter_products(SAMPLE_PRODUCTS, @filters)
     
     # Handle pagination
-    @page = (params[:page] || 1).to_i
     @per_page = 3
     @total_pages = (@products.count.to_f / @per_page).ceil
+    requested_page = params[:page].to_i
+    @page = requested_page.positive? ? requested_page : 1
+    @page = [@page, [@total_pages, 1].max].min
     @products = @products.slice((@page - 1) * @per_page, @per_page) || []
     
     # Handle search
-    @search_query = params[:q]
+    @search_query = params[:q].to_s.first(MAX_SEARCH_QUERY_LENGTH)
     if @search_query.present?
       @search_results = search_products(SAMPLE_PRODUCTS, @search_query)
     end
     
     # Handle tabs
-    @current_tab = params[:tab] || "products"
+    requested_tab = params[:tab].to_s
+    @current_tab = TABS.include?(requested_tab) ? requested_tab : "products"
     
     # Handle modal
     @show_modal = params[:modal] == "info"
@@ -47,13 +55,24 @@ class StatelessDemoController < ApplicationController
   end
   
   private
+
+  def normalize_filters(filters)
+    filters.each_with_object({}) do |(key, value), normalized|
+      next unless FILTER_KEYS.include?(key.to_s)
+
+      string_value = value.to_s
+      next unless SAMPLE_PRODUCTS.any? { |product| product[key.to_sym].to_s == string_value }
+
+      normalized[key.to_s] = string_value
+    end
+  end
   
   def filter_products(products, filters)
     filtered = products.dup
     
     filters.each do |key, value|
       next if value.blank?
-      filtered = filtered.select { |p| p[key.to_sym].to_s == value }
+      filtered = filtered.select { |p| p[key.to_sym].to_s == value.to_s }
     end
     
     filtered

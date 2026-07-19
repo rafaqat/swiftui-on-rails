@@ -1,4 +1,41 @@
 @import "tailwindcss";
+@source not "../../../log";
+@source not "../../../tmp";
+@source not "../../../coverage";
+
+/* Runtime-composed utilities the source scanner cannot see — the DSL builds
+   these from Ruby data ("items-#{alignment}", "text-#{size}"…). Found and
+   verified by `bin/rails swift_ui:lint`; keep in sync with that sweep. */
+@source inline("items-{start,end,center,stretch,baseline}");
+@source inline("justify-{start,end,center,between,around,evenly,stretch}");
+@source inline("text-{xs,sm,base,lg,xl,2xl,3xl,4xl,5xl,6xl,7xl,8xl,9xl}");
+@source inline("gap-{0,1,2,3,4,5,6,8,10,12,16,20,24}");
+@source inline("gap-x-{0,1,2,3,4,6,8}");
+@source inline("gap-y-{0,1,2,3,4,6,8}");
+@source inline("line-clamp-{1,2,3,4,5,6}");
+@source inline("{hover:,active:,}scale-{90,95,100,105,110,125}");
+@source inline("ring-{green,emerald,amber,red,blue,gray}-{500,600,700}/{10,20}");
+
+/* Literal and runtime-composed utilities exercised by the full component and
+   Storybook IR corpus. This exact contract makes a clean lint run reproducible
+   even when Tailwind's generic source scanner cannot infer Ruby interpolation. */
+@source inline("animate-spin auto-rows-fr bg-black/0 bg-gradient-to-t border-b-2 border-t-white bottom-4 disabled:cursor-not-allowed disabled:opacity-40 disabled:opacity-50 duration-700 focus:ring-gray-500 focus:ring-slate-500 from-black from-indigo-500 gap-y-10 gap-y-12 grid-cols-[repeat(auto-fit,minmax(280px,1fr))] grid-flow-dense group-hover:bg-black/20 h-[300px] hover:bg-blue-100 hover:bg-blue-50 hover:bg-green-600 hover:bg-green-700 hover:bg-green-800 hover:bg-red-600 hover:bg-red-700 hover:shadow-purple-500/50 hover:text-blue-600 hover:text-gray-600 hover:text-gray-700 hover:text-indigo-500 hover:z-10 leading-tight left-2 left-3 lg:block lg:hidden max-w-lg md:px-6 min-h-[60px] rounded-l-md rounded-r-md row-span-2 self-stretch shadow-xs sm:px-4 sm:rounded-lg sm:w-auto space-x-1 space-x-4 transition-[grid-template-columns,gap] translate-y-px xl:gap-x-8 z-40");
+
+/* Finite escape-hatch utilities emitted by the versioned Playground catalog.
+   `PlaygroundLanguageCatalogTest` verifies every catalogued class exists in the
+   compiled CSS, making this an executable renderer contract rather than a
+   best-effort source scan. */
+@source inline("{p,px,py,pt,pr,pb,pl,m,mx,my,mt,mr,mb,ml}-{0,px,0.5,1,1.5,2,2.5,3,3.5,4,5,6,7,8,9,10,11,12,14,16,20,24,28,32,36,40,44,48,52,56,60,64,72,80,96}");
+@source inline("{w,h,min-w,min-h}-{0,px,0.5,1,1.5,2,2.5,3,3.5,4,5,6,7,8,9,10,11,12,14,16,20,24,28,32,36,40,44,48,52,56,60,64,72,80,96,auto,full,1/2,1/3,2/3,1/4,2/4,3/4,screen,min,max,fit}");
+@source inline("{max-w,max-h}-{0,px,0.5,1,1.5,2,2.5,3,3.5,4,5,6,7,8,9,10,11,12,14,16,20,24,28,32,36,40,44,48,52,56,60,64,72,80,96,full,1/2,1/3,2/3,1/4,2/4,3/4,screen,min,max,fit}");
+@source inline("{text,bg,border}-{white,black,transparent,current,inherit}");
+@source inline("{text,bg,border}-{red,blue,green,yellow,gray,purple,pink,orange,indigo,slate,zinc,neutral,stone,amber,teal,cyan,sky,violet,fuchsia,rose}-{50,100,200,300,400,500,600,700,800,900,950}");
+@source inline("font-{thin,extralight,light,normal,medium,semibold,bold,extrabold,black}");
+@source inline("rounded-{none,sm,md,lg,xl,2xl,3xl,full}");
+@source inline("shadow-{none,sm,md,lg,xl,2xl,inner}");
+@source inline("border-{0,2,4,8}");
+@source inline("opacity-{0,5,10,20,25,30,40,50,60,70,75,80,90,95,100}");
+@source inline("gap-{0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32}");
 
 /* SwiftUI Rails Grid Isolation */
 @layer components {
@@ -21,6 +58,42 @@
   /* Contents wrapper for proper grid item isolation */
   .contents {
     display: contents;
+  }
+
+  /* Advanced content primitives remain usable without consumer styling, while
+     these defaults make their phase and responsive contracts visible. */
+  .swift-ui-async-image {
+    overflow: hidden;
+  }
+
+  .swift-ui-async-image__image {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .swift-ui-async-image__loading,
+  .swift-ui-async-image__error {
+    padding: 1rem;
+    text-align: center;
+  }
+
+  .swift-ui-chart__plot,
+  .swift-ui-map__plot,
+  .swift-ui-canvas__surface,
+  .swift-ui-web-view {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .swift-ui-web-view {
+    min-height: 20rem;
+    border: 0;
+  }
+
+  .swift-ui-rich-text > * + * {
+    margin-top: 0.75rem;
   }
 }
 
@@ -91,4 +164,68 @@
   .hover\:bg-purple-700:hover { background-color: #7c3aed; }
   .hover\:bg-purple-800:hover { background-color: #6b21a8; }
   .hover\:bg-purple-900:hover { background-color: #581c87; }
+}
+
+/* ── SwiftUI Rails motion transitions ──────────────────────────────
+   .transition(insertion:/removal:) renders these utilities. Insertion
+   animations play automatically when an element enters the DOM (initial
+   render and Turbo Stream inserts); exit classes are applied by
+   motion_stream_transitions.js before Turbo removes or replaces a node. */
+@layer components {
+  @keyframes motion-in-opacity   { from { opacity: 0 } }
+  @keyframes motion-in-move-up   { from { opacity: 0; transform: translateY(14px) } }
+  @keyframes motion-in-move-down { from { opacity: 0; transform: translateY(-14px) } }
+  @keyframes motion-in-scale     { from { opacity: 0; transform: scale(0.9) } }
+  @keyframes motion-in-blur      { from { opacity: 0; filter: blur(10px) } }
+
+  @keyframes motion-out-opacity   { to { opacity: 0 } }
+  @keyframes motion-out-move-up   { to { opacity: 0; transform: translateY(-14px) } }
+  @keyframes motion-out-move-down { to { opacity: 0; transform: translateY(14px) } }
+  @keyframes motion-out-scale     { to { opacity: 0; transform: scale(0.9) } }
+  @keyframes motion-out-blur      { to { opacity: 0; filter: blur(10px) } }
+
+  .motion-enter-opacity   { animation: motion-in-opacity   0.35s cubic-bezier(0.22, 1, 0.36, 1) both }
+  .motion-enter-move-up   { animation: motion-in-move-up   0.35s cubic-bezier(0.22, 1, 0.36, 1) both }
+  .motion-enter-move-down { animation: motion-in-move-down 0.35s cubic-bezier(0.22, 1, 0.36, 1) both }
+  .motion-enter-scale     { animation: motion-in-scale     0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both }
+  .motion-enter-blur      { animation: motion-in-blur      0.45s cubic-bezier(0.22, 1, 0.36, 1) both }
+
+  .motion-exit-opacity   { animation: motion-out-opacity   0.25s ease-in both }
+  .motion-exit-move-up   { animation: motion-out-move-up   0.25s ease-in both }
+  .motion-exit-move-down { animation: motion-out-move-down 0.25s ease-in both }
+  .motion-exit-scale     { animation: motion-out-scale     0.25s ease-in both }
+  .motion-exit-blur      { animation: motion-out-blur      0.3s  ease-in both }
+
+  /* button_style(:springy) — SwiftUI ButtonStyle-flavored pressed feedback */
+  .btn-springy        { transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) }
+  .btn-springy:hover  { transform: scale(1.05) }
+  .btn-springy:active { transform: scale(0.9) }
+
+  /* Ambient motion for the /demos/motion hero tile */
+  @keyframes motion-float-a {
+    0%, 100% { transform: translate(0, 0) scale(1) }
+    50%      { transform: translate(18px, -22px) scale(1.15) }
+  }
+  @keyframes motion-float-b {
+    0%, 100% { transform: translate(0, 0) scale(1.1) }
+    50%      { transform: translate(-24px, 16px) scale(0.95) }
+  }
+  @keyframes motion-sheen {
+    from { transform: translateX(-120%) }
+    to   { transform: translateX(220%) }
+  }
+  .motion-float-a { animation: motion-float-a 7s ease-in-out infinite }
+  .motion-float-b { animation: motion-float-b 9s ease-in-out infinite }
+  .motion-sheen   { animation: motion-sheen 3.5s cubic-bezier(0.4, 0, 0.2, 1) infinite }
+
+  @media (prefers-reduced-motion: reduce) {
+    .motion-enter-opacity, .motion-enter-move-up, .motion-enter-move-down,
+    .motion-enter-scale, .motion-enter-blur,
+    .motion-exit-opacity, .motion-exit-move-up, .motion-exit-move-down,
+    .motion-exit-scale, .motion-exit-blur,
+    .motion-float-a, .motion-float-b, .motion-sheen {
+      animation: none;
+    }
+    .btn-springy { transition: none }
+  }
 }

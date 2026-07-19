@@ -215,25 +215,23 @@ end
 # - product[:image_url] for hash objects
 ```
 
-## JavaScript Integration
+## Declaring interactions
 
-The component includes data attributes for JavaScript interactions:
+Application behavior stays in the Ruby component. Declare a signed action and
+let RenderIR plus the gem-owned runtime transport the click and apply the keyed
+result:
 
-```javascript
-// Each CTA button has:
-// data-action="click->product-layout#addToCart"
-// data-product-id="123"
-
-// You can add a Stimulus controller:
-import { Controller } from "@hotwired/stimulus"
-
-export default class extends Controller {
-  addToCart(event) {
-    const productId = event.target.dataset.productId
-    // Your add to cart logic
-  }
-}
+```ruby
+button("Add to cart").on_click do
+  # Re-load and authorize from the captured scalar ID on every request.
+  product = Current.user.available_products.find(product_id)
+  Current.user.cart.add(product)
+end
 ```
+
+Do not add a JavaScript controller, `data-action`, target, selector, or direct
+DOM mutation. If a browser behavior is missing, add it to the bounded semantic
+DSL and RenderIR command vocabulary first.
 
 ## Testing
 

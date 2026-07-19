@@ -1,0 +1,14 @@
+<section id="rails-counter" class="overflow-hidden rounded-3xl bg-gradient-to-br from-violet-700 via-violet-700 to-indigo-800 p-6 text-white shadow-lg" aria-labelledby="counter-heading" aria-live="polite">
+  <p class="text-xs font-bold uppercase tracking-[0.2em] text-violet-200">Request lab</p>
+  <div class="mt-4 flex items-end justify-between gap-5">
+    <div>
+      <h2 id="counter-heading" class="text-lg font-bold">Server counter</h2>
+      <p class="mt-1 text-sm leading-6 text-violet-200">Every click performs a protected POST and returns a targeted Turbo Stream.</p>
+    </div>
+    <span class="text-5xl font-black tabular-nums"><%= counter %></span>
+  </div>
+  <%= button_to "Send request",
+    rails_first_demo_increment_counter_path,
+    method: :post,
+    class: "mt-6 w-full cursor-pointer rounded-xl bg-white px-4 py-3 text-sm font-black text-violet-800 shadow-sm transition hover:bg-violet-50 focus:outline-none focus:ring-4 focus:ring-white/30" %>
+</section>

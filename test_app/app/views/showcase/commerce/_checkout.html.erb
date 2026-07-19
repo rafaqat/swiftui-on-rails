@@ -1,0 +1,85 @@
+<%= turbo_frame_tag "commerce_checkout" do %>
+  <section class="commerce-panel commerce-checkout-panel" aria-labelledby="commerce-checkout-heading">
+    <% if success.present? %>
+      <% reference = success[:reference] || success["reference"] %>
+      <% email = success[:email] || success["email"] %>
+      <div class="commerce-success" role="status">
+        <span class="commerce-success-mark" aria-hidden="true">✓</span>
+        <p class="commerce-kicker">ORDER CONFIRMED</p>
+        <h2 id="commerce-checkout-heading">Thank you.</h2>
+        <p>Your reference is <strong><%= reference %></strong>. A demo receipt has been prepared for <%= email %>.</p>
+        <%= link_to "Continue exploring", showcase_commerce_path, data: { turbo_frame: "_top" } %>
+      </div>
+    <% elsif cart.empty? %>
+      <div class="commerce-checkout-locked">
+        <span aria-hidden="true">◇</span>
+        <div>
+          <h2 id="commerce-checkout-heading">Checkout</h2>
+          <% if checkout.errors[:base].present? %>
+            <p class="commerce-empty-checkout-error" role="alert"><%= checkout.errors[:base].first %></p>
+          <% else %>
+            <p>Your delivery details will appear here once the bag has an item.</p>
+          <% end %>
+        </div>
+      </div>
+    <% else %>
+      <div class="commerce-panel-heading">
+        <div>
+          <p class="commerce-kicker">SECURE DEMO CHECKOUT</p>
+          <h2 id="commerce-checkout-heading">Where should it go?</h2>
+        </div>
+        <span aria-hidden="true">↗</span>
+      </div>
+
+      <% if checkout.errors.any? %>
+        <div class="commerce-form-errors" role="alert" tabindex="-1">
+          <strong>Please check the following:</strong>
+          <ul>
+            <% checkout.errors.each_value do |messages| %>
+              <% messages.each do |message| %>
+                <li><%= message %></li>
+              <% end %>
+            <% end %>
+          </ul>
+        </div>
+      <% end %>
+
+      <%= form_with url: showcase_commerce_checkout_path,
+            method: :post,
+            scope: :checkout,
+            class: "commerce-checkout-form" do |form| %>
+        <div class="commerce-input-group">
+          <%= form.label :name, "Full name" %>
+          <%= form.text_field :name,
+                value: checkout.name,
+                autocomplete: "name",
+                maxlength: Showcase::Checkout::MAX_LENGTHS[:name],
+                required: true,
+                aria: { invalid: checkout.errors.key?(:name) } %>
+        </div>
+        <div class="commerce-input-group">
+          <%= form.label :email, "Email" %>
+          <%= form.email_field :email,
+                value: checkout.email,
+                autocomplete: "email",
+                maxlength: Showcase::Checkout::MAX_LENGTHS[:email],
+                required: true,
+                aria: { invalid: checkout.errors.key?(:email) } %>
+        </div>
+        <div class="commerce-input-group">
+          <%= form.label :address, "Delivery address" %>
+          <%= form.text_area :address,
+                value: checkout.address,
+                autocomplete: "street-address",
+                maxlength: Showcase::Checkout::MAX_LENGTHS[:address],
+                rows: 3,
+                required: true,
+                aria: { invalid: checkout.errors.key?(:address) } %>
+        </div>
+        <%= form.submit "Place demo order · #{number_to_currency(cart.total_cents / 100.0, unit: "£")}",
+              class: "commerce-checkout-button" %>
+        <p class="commerce-checkout-note">No payment details are collected. This is a local showcase transaction.</p>
+      <% end %>
+    <% end %>
+  </section>
+<% end %>

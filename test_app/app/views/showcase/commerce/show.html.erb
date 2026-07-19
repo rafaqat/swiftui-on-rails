@@ -1,0 +1,146 @@
+<% content_for :title, "Northstar Supply — Commerce Showcase" %>
+<%= render "styles" %>
+
+<div class="commerce-shell">
+  <header class="commerce-hero">
+    <nav class="commerce-nav" aria-label="Commerce showcase">
+      <%= link_to showcase_commerce_path, class: "commerce-brand" do %>
+        <span class="commerce-brand-mark" aria-hidden="true">N</span>
+        <span>Northstar Supply</span>
+      <% end %>
+      <div class="commerce-nav-links">
+        <a href="#catalog">Shop</a>
+        <a href="#commerce_cart" aria-label="View shopping bag">
+          Bag <span id="commerce_nav_count" class="commerce-count"><%= @cart.item_count %></span>
+        </a>
+      </div>
+    </nav>
+
+    <div class="commerce-hero-copy">
+      <p class="commerce-eyebrow">TOOLS FOR CURIOUS PEOPLE</p>
+      <h1>Make room for<br><em>better ideas.</em></h1>
+      <p class="commerce-hero-text">
+        Considered creative tools for the desk, studio and road—selected for how they feel to use,
+        not how loud they look.
+      </p>
+      <a class="commerce-primary-link" href="#catalog">Explore the collection <span aria-hidden="true">→</span></a>
+    </div>
+
+    <div class="commerce-hero-art" aria-hidden="true">
+      <div class="commerce-orbit commerce-orbit-one"></div>
+      <div class="commerce-orbit commerce-orbit-two"></div>
+      <div class="commerce-hero-object">
+        <span>◖</span><span>◗</span>
+      </div>
+      <p>STUDIO<br>EDITION</p>
+    </div>
+
+    <div class="commerce-trust-row" aria-label="Store benefits">
+      <span>Free delivery over £500</span>
+      <span>30-day considered returns</span>
+      <span>Two-year care promise</span>
+    </div>
+  </header>
+
+  <div id="commerce_notice" class="commerce-notice-region" aria-live="polite">
+    <% if flash[:notice].present? %>
+      <%= render "notice", message: flash[:notice], tone: :success %>
+    <% elsif flash[:alert].present? %>
+      <%= render "notice", message: flash[:alert], tone: :error %>
+    <% end %>
+  </div>
+
+  <div class="commerce-layout">
+    <section id="catalog" class="commerce-catalog" aria-labelledby="catalog-heading">
+      <%= turbo_frame_tag "commerce_catalog", data: { turbo_action: "advance" } do %>
+        <div class="commerce-section-heading">
+          <div>
+            <p class="commerce-kicker">THE COLLECTION</p>
+            <h2 id="catalog-heading">Objects worth keeping</h2>
+          </div>
+          <p><strong><%= @products.length %></strong> of <%= @catalog.all.length %> pieces</p>
+        </div>
+
+        <%= form_with url: showcase_commerce_path,
+              method: :get,
+              class: "commerce-filters",
+              data: {
+                turbo_frame: "commerce_catalog",
+                turbo_action: "advance"
+              } do |form| %>
+          <div class="commerce-search-field">
+            <%= form.label :q, "Search the collection", class: "commerce-sr-only" %>
+            <span aria-hidden="true">⌕</span>
+            <%= form.search_field :q,
+                  value: @query,
+                  placeholder: "Search tools and features",
+                  maxlength: Showcase::CommerceController::MAX_QUERY_LENGTH,
+                  autocomplete: "off" %>
+          </div>
+
+          <div class="commerce-filter-field">
+            <%= form.label :category, "Category" %>
+            <%= form.select :category,
+                  options_for_select([["All categories", ""]] + @catalog.categories.map { |key, name| [name, key] }, @category) %>
+          </div>
+
+          <div class="commerce-filter-field">
+            <%= form.label :max_price, "Maximum price" %>
+            <%= form.select :max_price,
+                  options_for_select([["Any price", ""]] + Showcase::Catalog::PRICE_CAPS.map { |cents, label| [label, cents] }, @max_price_cents) %>
+          </div>
+
+          <div class="commerce-filter-field">
+            <%= form.label :sort, "Sort" %>
+            <%= form.select :sort,
+                  options_for_select(Showcase::Catalog::SORTS.map { |key, label| [label, key] }, @sort) %>
+          </div>
+
+          <label class="commerce-stock-toggle">
+            <%= form.check_box :in_stock,
+                  { checked: @in_stock },
+                  "1",
+                  "0" %>
+            <span>In stock only</span>
+          </label>
+
+          <%= form.submit "Apply filters", class: "commerce-filter-submit" %>
+          <% if @query.present? || @category.present? || @max_price_cents || @in_stock || @sort != "featured" %>
+            <%= link_to "Clear all",
+                  showcase_commerce_path,
+                  class: "commerce-clear-link",
+                  data: { turbo_frame: "commerce_catalog", turbo_action: "advance" } %>
+          <% end %>
+        <% end %>
+
+        <% if @products.any? %>
+          <div class="commerce-product-grid">
+            <%= render partial: "product_card", collection: @products, as: :product %>
+          </div>
+        <% else %>
+          <div class="commerce-empty-results">
+            <span aria-hidden="true">⌕</span>
+            <h3>No pieces match those filters</h3>
+            <p>Try a broader search or clear one of the filters.</p>
+            <%= link_to "Reset the collection", showcase_commerce_path, data: { turbo_frame: "commerce_catalog" } %>
+          </div>
+        <% end %>
+      <% end %>
+    </section>
+
+    <aside class="commerce-sidebar" aria-label="Shopping bag and checkout">
+      <%= render "cart", cart: @cart %>
+      <%= render "checkout", cart: @cart, checkout: @checkout, success: @order %>
+
+      <div class="commerce-build-note">
+        <span aria-hidden="true">◇</span>
+        <div>
+          <strong>Rails-first by design</strong>
+          <p>URL filters, session cart and validated server checkout—with Turbo as an enhancement.</p>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <%= turbo_frame_tag "commerce_quick_view" %>
+</div>

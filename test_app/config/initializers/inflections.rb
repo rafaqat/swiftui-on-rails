@@ -10,7 +10,6 @@
 #   inflect.uncountable %w( fish sheep )
 # end
 
-# These inflection rules are supported but not enabled by default:
-# ActiveSupport::Inflector.inflections(:en) do |inflect|
-#   inflect.acronym "RESTful"
-# end
+# Keep the existing SwiftUi namespace used by controllers and channels while
+# preserving the branded SwiftUIComponent constant for this one basename.
+Rails.autoloaders.main.inflector.inflect("swift_ui_component" => "SwiftUIComponent")

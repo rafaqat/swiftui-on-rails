@@ -109,14 +109,11 @@
                   .font_weight("bold") %>
                 
                 <% if product.in_stock? %>
-                  <% button("Add to Cart")
+                  <% button("In Stock", disabled: true)
                     .bg("blue-600")
                     .text_color("white")
                     .px(4).py(2)
-                    .rounded
-                    .hover("bg-blue-700")
-                    .data(action: "click->product#addToCart".html_safe)
-                    .data(product_id: product.id) %>
+                    .rounded %>
                 <% else %>
                   <% text("Out of Stock")
                     .text_color("gray-500") %>

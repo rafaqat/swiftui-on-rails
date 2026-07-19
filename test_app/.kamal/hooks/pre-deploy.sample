@@ -45,6 +45,12 @@ class GithubStatusChecks
   def initialize
     @remote_url = github_repo_from_remote_url
     @git_sha = `git rev-parse HEAD`.strip
+    
+    # Check for GitHub token
+    unless ENV["GITHUB_TOKEN"]
+      raise "GITHUB_TOKEN environment variable not set. Please set it to check build status."
+    end
+    
     @github_client = Octokit::Client.new(access_token: ENV["GITHUB_TOKEN"])
     refresh!
   end

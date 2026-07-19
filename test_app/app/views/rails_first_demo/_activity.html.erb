@@ -1,0 +1,29 @@
+<section id="recent-activity" class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm" aria-labelledby="activity-heading" aria-live="polite">
+  <div class="flex items-center justify-between gap-4">
+    <div>
+      <p class="text-xs font-bold uppercase tracking-[0.2em] text-slate-500">Audit trail</p>
+      <h2 id="activity-heading" class="mt-2 text-xl font-bold text-slate-950">Recent activity</h2>
+    </div>
+    <span class="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-700">Live</span>
+  </div>
+
+  <% if activities.any? %>
+    <ol class="mt-5 space-y-4">
+      <% activities.each_with_index do |activity, index| %>
+        <li class="relative pl-6">
+          <% unless index == activities.length - 1 %>
+            <span class="absolute left-[0.3rem] top-3 h-[calc(100%+1rem)] w-px bg-slate-200" aria-hidden="true"></span>
+          <% end %>
+          <span class="absolute left-0 top-1.5 h-2.5 w-2.5 rounded-full bg-cyan-500 ring-4 ring-cyan-50" aria-hidden="true"></span>
+          <div class="flex items-baseline justify-between gap-3">
+            <p class="text-sm font-bold text-slate-800"><%= activity["title"] %></p>
+            <time class="shrink-0 text-[0.68rem] font-semibold tabular-nums text-slate-600"><%= activity["occurred_at"] %></time>
+          </div>
+          <p class="mt-1 break-words text-xs leading-5 text-slate-500"><%= activity["detail"] %></p>
+        </li>
+      <% end %>
+    </ol>
+  <% else %>
+    <p class="mt-5 rounded-xl bg-slate-50 px-4 py-6 text-center text-sm text-slate-500">Activity will appear after the first change.</p>
+  <% end %>
+</section>

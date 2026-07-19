@@ -1,0 +1,60 @@
+<% content_for :title, "#{@product.name} — Northstar Supply" %>
+<%= render "styles" %>
+
+<div class="commerce-shell">
+  <%= turbo_frame_tag "commerce_quick_view" do %>
+    <article class="commerce-quick-view" aria-labelledby="quick-product-title">
+      <%= link_to "×", showcase_commerce_path,
+            class: "commerce-close-quick",
+            aria: { label: "Close product details" },
+            data: { turbo_frame: "_top" } %>
+
+      <div class="commerce-quick-art commerce-art--<%= @product.tone %>">
+        <span aria-hidden="true"><%= @product.symbol %></span>
+      </div>
+
+      <div class="commerce-quick-copy">
+        <p class="commerce-product-category"><%= @product.category_name %></p>
+        <h1 id="quick-product-title"><%= @product.name %></h1>
+        <div class="commerce-rating" aria-label="Rated <%= @product.rating %> out of 5 from <%= @product.reviews %> reviews">
+          <span aria-hidden="true">★★★★★</span>
+          <small><%= @product.rating %> · <%= @product.reviews %> considered reviews</small>
+        </div>
+        <p class="commerce-quick-description"><%= @product.description %></p>
+        <ul class="commerce-quick-features">
+          <% @product.features.each do |feature| %>
+            <li><%= feature %></li>
+          <% end %>
+        </ul>
+
+        <div class="commerce-quick-buy">
+          <div class="commerce-quick-price">
+            <strong><%= number_to_currency(@product.price_cents / 100.0, unit: "£") %></strong>
+            <small><%= @product.in_stock? ? "#{@product.stock} ready to dispatch" : "Currently unavailable" %></small>
+          </div>
+          <%= form_with url: showcase_commerce_cart_items_path,
+                method: :post,
+                data: (@quick_view ? {} : { turbo: false }) do |form| %>
+            <%= form.hidden_field :product_id, value: @product.id %>
+            <% if @product.in_stock? %>
+              <div class="commerce-quantity-field">
+                <%= form.label :quantity, "Quantity" %>
+                <%= form.select :quantity, (1..[@product.stock, Showcase::Cart::MAX_QUANTITY].min).to_a %>
+              </div>
+            <% else %>
+              <%= form.hidden_field :quantity, value: 1 %>
+            <% end %>
+            <%= form.submit @product.in_stock? ? "Add to bag" : "Sold out",
+                  class: "commerce-quick-add",
+                  disabled: !@product.in_stock? %>
+          <% end %>
+        </div>
+
+        <%= link_to "← Back to Northstar Supply",
+              showcase_commerce_path,
+              class: "commerce-back-link",
+              data: { turbo_frame: "_top" } %>
+      </div>
+    </article>
+  <% end %>
+</div>

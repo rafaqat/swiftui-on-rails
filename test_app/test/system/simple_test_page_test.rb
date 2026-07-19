@@ -1,32 +1,16 @@
+# frozen_string_literal: true
+
 require "application_system_test_case"
 
 class SimpleTestPageTest < ApplicationSystemTestCase
-  test "simple swift ui tests" do
-    visit "/home/simple_test"
-    
-    # Check page loaded
-    assert_text "Simple SwiftUI Test"
-    
-    # Check Test 1
-    assert_text "Test 1: Basic text"
-    assert_text "Hello World"
-    
-    # Check Test 2
-    assert_text "Test 2: Basic vstack"
-    assert_text "Line 1"
-    assert_text "Line 2"
-    
-    # Check Test 3
-    assert_text "Test 3: Vstack with padding"
-    assert_text "Padded content"
-    
-    # Check Test 4
-    assert_text "Test 4: Full example"
-    assert_text "SwiftUI Rails"
-    assert_text "This is a test"
-    assert_selector "button", text: "Click me"
-    
-    # Check for no errors
+  test "Swift UI DSL components render as interactive DOM" do
+    visit counter_path
+
+    assert_selector "[data-sui-component='CounterComponent']", count: 4
+    assert_selector "[data-counter='true'] [data-counter-display='true']", count: 4
+    assert_selector "[data-counter='true'] button[data-sui-actions]", count: 12
+    assert_no_selector "[data-controller], [data-action]"
+
     assert_no_page_errors
     assert_no_console_errors
   end

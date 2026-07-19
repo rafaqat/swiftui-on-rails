@@ -3,57 +3,37 @@
 require "application_system_test_case"
 
 class CardComponentTitleTest < ApplicationSystemTestCase
-  test "card component title changes work in real time" do
-    puts "🧪 Testing card component with new working pattern..."
-    
-    visit "/storybook/show?story=card_component"
-    
-    # Wait for page to load
-    assert_selector "[data-controller='live_story']", wait: 5
-    puts "✅ Storybook page loaded"
-    
-    # Find the title input
-    title_input = find("input[name='title']", wait: 5)
-    initial_title = title_input.value
-    puts "📝 Found title input with value: '#{initial_title}'"
-    
-    # Check initial card title
-    initial_card_title = find("#component-preview .text-lg", wait: 5)
-    puts "🎯 Initial card title: '#{initial_card_title.text}'"
-    
-    # Verify the initial title matches
-    assert_equal initial_title, initial_card_title.text, "Initial title should match"
-    
-    # Change the title
-    new_title = "Real Time Update Works!"
-    title_input.fill_in with: new_title
-    
-    # Trigger change event
-    title_input.send_keys(:tab)
-    
-    puts "⏳ Waiting for title update..."
-    
-    # Wait for the card to update with new title - increased timeout
-    begin
-      assert_text new_title, wait: 10
-      puts "✅ Title successfully updated to: '#{new_title}'"
-      
-      # Double check the card title element specifically
-      updated_card_title = find("#component-preview .text-lg", wait: 5)
-      assert_equal new_title, updated_card_title.text
-      
-      puts "🎉 Card component real-time updates are working perfectly!"
-      
-    rescue Capybara::ElementNotFound => e
-      # Get debug info if it fails
-      puts "❌ Title update failed"
-      puts "Current page text includes: #{page.text.include?(new_title) ? 'YES' : 'NO'}"
-      
-      # Check if any AJAX calls were made
-      network_logs = page.driver.browser.logs.get(:browser).select { |l| l.message.include?('POST') || l.message.include?('AJAX') }
-      puts "Network activity: #{network_logs.any? ? 'YES' : 'NO'}"
-      
-      raise e
+  test "card controls update preview and inspector through Rails" do
+    visit storybook_show_path(story: "dsl_card")
+
+    assert_selector "#component-preview", text: "DSL Card - Composition Pattern"
+    assert_selector "#component-preview .text-lg.font-semibold", text: "Card Title"
+
+    fill_in "storybook-control-card_title", with: "Production Ready Card"
+    fill_in "storybook-control-card_content", with: "Server-rendered card content"
+    find("#storybook-control-background option[value='blue-50']").select_option
+    find("#storybook-control-border_color option[value='purple-200']").select_option
+    click_button "Apply controls"
+
+    assert_selector "#component-preview .text-lg.font-semibold", text: "Production Ready Card", wait: 10
+    assert_selector "#component-preview", text: "Server-rendered card content", wait: 10
+    assert_selector "#component-preview .rounded-lg.bg-blue-50.border-purple-200", wait: 10
+
+    within "#state-inspector" do
+      assert_text "prop_card_title"
+      assert_text "Production Ready Card"
+      assert_text "prop_card_content"
+      assert_text "Server-rendered card content"
+      assert_text "blue-50"
+      assert_text "purple-200"
     end
+
+    within "[aria-label='Scrollable story source']" do
+      assert_text "def default("
+      assert_text "card_header do"
+      assert_text ".bg(background)"
+    end
+
+    assert_no_selector "[data-controller], [data-action]"
   end
 end

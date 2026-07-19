@@ -1,6 +1,0 @@
-# This directory should only contain:
-# 1. dsl_button_stories.rb - Button component example
-# 2. dsl_card_stories.rb - Card component example  
-# 3. product_layout_stories.rb - Product layout with slots
-
-# All other stories have been removed to focus on these 3 examples

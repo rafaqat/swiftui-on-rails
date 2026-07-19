@@ -1,0 +1,68 @@
+<%= turbo_frame_tag "commerce_cart" do %>
+  <section class="commerce-panel commerce-cart-panel" aria-labelledby="commerce-cart-heading">
+    <div class="commerce-panel-heading">
+      <div>
+        <p class="commerce-kicker">YOUR SELECTION</p>
+        <h2 id="commerce-cart-heading">The bag</h2>
+      </div>
+      <span class="commerce-count commerce-count-dark"><%= cart.item_count %></span>
+    </div>
+
+    <% if cart.empty? %>
+      <div class="commerce-empty-cart">
+        <span aria-hidden="true">⌁</span>
+        <h3>Your bag is ready</h3>
+        <p>Add a considered tool from the collection to begin.</p>
+        <a href="#catalog" data-turbo-frame="_top">Browse the collection</a>
+      </div>
+    <% else %>
+      <div class="commerce-cart-lines">
+        <% cart.lines.each do |line| %>
+          <article class="commerce-cart-line">
+            <div class="commerce-cart-thumb commerce-art--<%= line.product.tone %>" aria-hidden="true">
+              <%= line.product.symbol %>
+            </div>
+            <div class="commerce-cart-line-copy">
+              <strong><%= line.product.name %></strong>
+              <small><%= number_to_currency(line.product.price_cents / 100.0, unit: "£") %> each</small>
+              <div class="commerce-cart-controls">
+                <%= form_with url: showcase_commerce_cart_item_path(line.product.id), method: :patch do |form| %>
+                  <%= form.label :quantity, "Quantity for #{line.product.name}", class: "commerce-sr-only" %>
+                  <%= form.select :quantity,
+                        options_for_select((1..[line.product.stock, Showcase::Cart::MAX_QUANTITY].min).to_a, line.quantity),
+                        {},
+                        aria: { label: "Quantity for #{line.product.name}" } %>
+                  <%= form.submit "Update", class: "commerce-text-button" %>
+                <% end %>
+                <%= button_to "Remove",
+                      showcase_commerce_cart_item_path(line.product.id),
+                      method: :delete,
+                      class: "commerce-remove-button",
+                      form: { data: { turbo_confirm: "Remove #{line.product.name} from your bag?" } } %>
+              </div>
+            </div>
+            <strong class="commerce-line-total"><%= number_to_currency(line.subtotal_cents / 100.0, unit: "£") %></strong>
+          </article>
+        <% end %>
+      </div>
+
+      <% if cart.free_shipping_remaining_cents.positive? %>
+        <div class="commerce-shipping-progress">
+          <p>Add <strong><%= number_to_currency(cart.free_shipping_remaining_cents / 100.0, unit: "£") %></strong> for free delivery.</p>
+          <progress value="<%= cart.subtotal_cents %>" max="<%= Showcase::Cart::FREE_SHIPPING_THRESHOLD_CENTS %>">
+            <%= [(cart.subtotal_cents.to_f / Showcase::Cart::FREE_SHIPPING_THRESHOLD_CENTS) * 100, 100].min.round %>%
+          </progress>
+        </div>
+      <% else %>
+        <p class="commerce-free-shipping">✓ Your order qualifies for free delivery.</p>
+      <% end %>
+
+      <dl class="commerce-totals">
+        <div><dt>Subtotal</dt><dd><%= number_to_currency(cart.subtotal_cents / 100.0, unit: "£") %></dd></div>
+        <div><dt>Delivery</dt><dd><%= cart.shipping_cents.zero? ? "Free" : number_to_currency(cart.shipping_cents / 100.0, unit: "£") %></dd></div>
+        <div class="commerce-grand-total"><dt>Total</dt><dd><%= number_to_currency(cart.total_cents / 100.0, unit: "£") %></dd></div>
+      </dl>
+      <p class="commerce-tax-note">Prices include VAT where applicable.</p>
+    <% end %>
+  </section>
+<% end %>

@@ -3,39 +3,26 @@
 require "application_system_test_case"
 
 class ProductLayoutStoryTest < ApplicationSystemTestCase
-  # Use headless browser
-  setup do
-    Capybara.current_driver = :selenium_chrome_headless
+  test "default product layout story renders its complete catalog" do
+    visit storybook_show_path(story: "product_layout_simple", story_variant: "default")
+
+    within "#component-preview" do
+      assert_text "Product Catalog"
+      assert_text "4 items"
+      assert_selector "img", count: 4
+      assert_selector "button", text: "Add to Cart", count: 4
+      assert_text "Nomad Tumbler"
+      assert_text "$25"
+    end
+
+    assert_no_page_errors
   end
 
-  test "product layout story renders without errors" do
-    visit "/storybook/show?story=product_layout&story_variant=default"
-    
-    # Check that the page loads without errors
-    assert_text "Products"
-    assert_text "8 items"
-    
-    # Check that select element renders
-    assert_selector "select", visible: :all
-    
-    # Check that product cards render (we should have 8 products)
-    # Use minimum: 1 to check that at least some cards render
-    assert_selector "div", text: /\$\d+/, minimum: 1
-    
-    # Check for no error messages
-    assert_no_text "wrong number of arguments"
-    assert_no_text "Error"
-    assert_no_text "Exception"
-  end
+  test "storybook exposes each registered product layout variant" do
+    visit storybook_show_path(story: "product_layout_simple")
 
-  test "product layout masonry variant renders" do
-    visit "/storybook/show?story=product_layout&story_variant=masonry"
-    
-    # Check basic rendering
-    assert_text "Products", wait: 5
-    
-    # Check for no errors
-    assert_no_text "wrong number of arguments"
-    assert_no_text "Error"
+    assert_selector "[data-variant='default']"
+    assert_selector "[data-variant='with_filters']"
+    assert_selector "[data-variant='four_column_grid']"
   end
 end

@@ -1,0 +1,55 @@
+<% content_for :title, "Live Operations · SwiftUI Rails" %>
+
+<div class="min-h-screen w-full bg-slate-950 text-slate-100">
+  <header class="border-b border-white/10 bg-slate-950/90 backdrop-blur">
+    <div class="mx-auto flex max-w-7xl flex-col gap-5 px-6 py-8 lg:flex-row lg:items-end lg:justify-between">
+      <div>
+        <%= link_to "← Showcase", root_path, class: "text-sm font-semibold text-cyan-300 hover:text-cyan-200" %>
+        <p class="mt-6 text-xs font-bold uppercase tracking-[0.3em] text-cyan-300">Reactive systems lab</p>
+        <h1 class="mt-2 text-4xl font-black tracking-tight text-white sm:text-5xl">Live operations control room</h1>
+        <p class="mt-3 max-w-3xl text-base leading-7 text-slate-300">
+          Mutate server-owned state through ordinary Rails forms. Turbo may replace the dashboard,
+          while the route and session remain the only application-state authority.
+        </p>
+      </div>
+
+      <div class="grid min-w-[19rem] gap-2 rounded-2xl border border-cyan-400/20 bg-cyan-400/5 p-4 text-sm">
+        <div class="flex items-center gap-2">
+          <span class="h-2.5 w-2.5 animate-pulse rounded-full bg-cyan-300"></span>
+          <span data-status="ready">Rails route ready</span>
+        </div>
+        <p class="text-slate-400">Every event is validated and rendered by the server.</p>
+        <p class="font-mono text-xs text-cyan-200">No application JavaScript state</p>
+      </div>
+    </div>
+  </header>
+
+  <div class="mx-auto max-w-7xl px-6 py-8">
+    <% if notice.present? %>
+      <div class="mb-6 rounded-xl border border-emerald-400/30 bg-emerald-400/10 px-4 py-3 text-emerald-100"><%= notice %></div>
+    <% end %>
+    <% if alert.present? %>
+      <div class="mb-6 rounded-xl border border-rose-400/30 bg-rose-400/10 px-4 py-3 text-rose-100"><%= alert %></div>
+    <% end %>
+
+    <%= render "dashboard", state: @state %>
+
+    <section class="mt-8 grid gap-4 lg:grid-cols-3">
+      <article class="rounded-2xl border border-white/10 bg-white/5 p-5">
+        <p class="text-xs font-bold uppercase tracking-wider text-cyan-300">Authorization</p>
+        <h2 class="mt-2 font-bold text-white">Allowlisted events</h2>
+        <p class="mt-2 text-sm leading-6 text-slate-400">Rails accepts a finite event vocabulary; user input never selects an arbitrary method.</p>
+      </article>
+      <article class="rounded-2xl border border-white/10 bg-white/5 p-5">
+        <p class="text-xs font-bold uppercase tracking-wider text-violet-300">Rendering</p>
+        <h2 class="mt-2 font-bold text-white">Turbo Stream mutation</h2>
+        <p class="mt-2 text-sm leading-6 text-slate-400">Every control works as a normal Rails form and progressively upgrades to replace only the dashboard.</p>
+      </article>
+      <article class="rounded-2xl border border-white/10 bg-white/5 p-5">
+        <p class="text-xs font-bold uppercase tracking-wider text-amber-300">State</p>
+        <h2 class="mt-2 font-bold text-white">Serializable and recoverable</h2>
+        <p class="mt-2 text-sm leading-6 text-slate-400">Operations state is normalized before use, bounded for the session, and never invokes client-selected methods.</p>
+      </article>
+    </section>
+  </div>
+</div>

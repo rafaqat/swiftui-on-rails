@@ -1,0 +1,105 @@
+<% keys = [
+  { key: "deg", label: "DEG", name: "Degree angle mode", kind: "mode", active: calculator.angle_mode == "DEG" },
+  { key: "rad", label: "RAD", name: "Radian angle mode", kind: "mode", active: calculator.angle_mode == "RAD" },
+  { key: "sto", label: "STO", name: "Store X in register", kind: "memory", active: calculator.pending_register == "sto" },
+  { key: "rcl", label: "RCL", name: "Recall a register", kind: "memory", active: calculator.pending_register == "rcl" },
+  { key: "swap", label: "x⇄y", name: "Swap X and Y", kind: "science" },
+  { key: "drop", label: "DROP", name: "Drop X from the stack", kind: "science" },
+  { key: "sin", label: "sin", name: "Sine", kind: "science" },
+  { key: "cos", label: "cos", name: "Cosine", kind: "science" },
+  { key: "tan", label: "tan", name: "Tangent", kind: "science" },
+  { key: "sqrt", label: "√x", name: "Square root", kind: "science" },
+  { key: "square", label: "x²", name: "Square X", kind: "science" },
+  { key: "pow", label: "yˣ", name: "Raise Y to the power X", kind: "science" },
+  { key: "ln", label: "ln", name: "Natural logarithm", kind: "science" },
+  { key: "log10", label: "log", name: "Base ten logarithm", kind: "science" },
+  { key: "exp", label: "eˣ", name: "E to the power X", kind: "science" },
+  { key: "ten_pow", label: "10ˣ", name: "Ten to the power X", kind: "science" },
+  { key: "reciprocal", label: "1/x", name: "Reciprocal", kind: "science" },
+  { key: "pi", label: "π", name: "Pi", kind: "science", shortcut: "p" },
+  { key: "7", label: "7", name: "Seven", shortcut: "7" },
+  { key: "8", label: "8", name: "Eight", shortcut: "8" },
+  { key: "9", label: "9", name: "Nine", shortcut: "9" },
+  { key: "/", label: "÷", name: "Divide", kind: "operator", shortcut: "/" },
+  { key: "chs", label: "CHS", name: "Change sign", kind: "science" },
+  { key: "eex", label: "EEX", name: "Enter exponent", kind: "science" },
+  { key: "4", label: "4", name: "Four", shortcut: "4" },
+  { key: "5", label: "5", name: "Five", shortcut: "5" },
+  { key: "6", label: "6", name: "Six", shortcut: "6" },
+  { key: "*", label: "×", name: "Multiply", kind: "operator", shortcut: "*" },
+  { key: "backspace", label: "⌫", name: "Backspace", kind: "science", shortcut: "Backspace" },
+  { key: "clear", label: "CLR", name: "Clear the stack", kind: "danger", shortcut: "Escape" },
+  { key: "1", label: "1", name: "One", shortcut: "1" },
+  { key: "2", label: "2", name: "Two", shortcut: "2" },
+  { key: "3", label: "3", name: "Three", shortcut: "3" },
+  { key: "-", label: "−", name: "Subtract", kind: "operator", shortcut: "-" },
+  { key: "0", label: "0", name: "Zero", placement: "zero", shortcut: "0" },
+  { key: ".", label: ".", name: "Decimal point", placement: "decimal", shortcut: "." },
+  { key: "+", label: "+", name: "Add", kind: "operator", placement: "plus", shortcut: "+" },
+  { key: "enter", label: "ENTER", name: "Enter X onto the stack", kind: "enter", placement: "enter", shortcut: "Enter" }
+] %>
+
+<div id="showcase_calculator"
+     class="calculator"
+     aria-label="RPN scientific calculator">
+  <header class="calculator__brand">
+    <span class="calculator__brand-name">Reverse Polish Scientific</span>
+    <span class="calculator__model">RPN · 41</span>
+  </header>
+
+  <div class="calculator__display-bezel">
+    <div class="calculator__display" role="status" aria-live="polite" aria-atomic="true">
+      <div class="calculator__annunciators" aria-label="Calculator mode">
+        <span class="<%= "calculator__annunciator--active" if calculator.angle_mode == "DEG" %>">DEG</span>
+        <span class="<%= "calculator__annunciator--active" if calculator.angle_mode == "RAD" %>">RAD</span>
+        <% if calculator.pending_register %>
+          <span class="calculator__annunciator--active"><%= calculator.pending_register.upcase %></span>
+        <% end %>
+      </div>
+
+      <% %i[t z y].each do |slot| %>
+        <div class="calculator__stack-row" data-stack-register="<%= slot %>">
+          <span class="calculator__stack-label"><%= slot.upcase %></span>
+          <output class="calculator__stack-value"><%= calculator.display(slot) %></output>
+        </div>
+      <% end %>
+      <div class="calculator__stack-row calculator__stack-row--x" data-stack-register="x">
+        <span class="calculator__stack-label">X</span>
+        <output class="calculator__stack-value"><%= calculator.display(:x) %></output>
+      </div>
+
+      <div class="calculator__status calculator__status--<%= calculator.status_kind %>"
+           data-testid="calculator-status"><%= calculator.status_message %></div>
+    </div>
+  </div>
+
+  <div class="calculator__registers" aria-label="Memory registers">
+    <% 10.times do |index| %>
+      <span class="calculator__register">
+        R<%= index %>
+        <output class="calculator__register-value" data-memory-register="<%= index %>"><%= calculator.display_register(index) %></output>
+      </span>
+    <% end %>
+  </div>
+
+  <%= form_with url: showcase_calculator_key_path,
+                method: :post,
+                class: "calculator__keypad" do %>
+    <% keys.each do |key| %>
+      <% classes = ["calculator__key"] %>
+      <% classes << "calculator__key--#{key[:kind]}" if key[:kind] %>
+      <% classes << "calculator__key--#{key[:placement]}" if key[:placement] %>
+      <% classes << "calculator__key--mode-active" if key[:active] %>
+      <%= button_tag key[:label],
+                     type: "submit",
+                     name: "key",
+                     value: key[:key],
+                     class: classes.join(" "),
+                     title: key[:name],
+                     aria: {
+                       label: key[:name],
+                       pressed: key[:active].nil? ? nil : key[:active]
+                     }.compact %>
+    <% end %>
+  <% end %>
+</div>

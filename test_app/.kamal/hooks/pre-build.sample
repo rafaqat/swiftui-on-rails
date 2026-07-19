@@ -1,4 +1,6 @@
-#!/bin/sh
+#!/bin/bash
+# SECURITY: Use bash for better string handling and safety features
+set -euo pipefail
 
 # A sample pre-build hook
 #
@@ -16,35 +18,68 @@
 # KAMAL_ROLES (if set)
 # KAMAL_DESTINATION (if set)
 
+# SECURITY: Check for clean git status
 if [ -n "$(git status --porcelain)" ]; then
   echo "Git checkout is not clean, aborting..." >&2
   git status --porcelain >&2
   exit 1
 fi
 
-first_remote=$(git remote)
+# SECURITY: Get first remote with proper handling
+first_remote=$(git remote | head -n1)
 
 if [ -z "$first_remote" ]; then
   echo "No git remote set, aborting..." >&2
   exit 1
 fi
 
-current_branch=$(git branch --show-current)
+# SECURITY: Validate remote name to prevent injection
+if [[ ! "$first_remote" =~ ^[a-zA-Z0-9_.-]+$ ]]; then
+  echo "ERROR: Invalid remote name format: $first_remote" >&2
+  echo "Remote names must contain only alphanumeric characters, dots, dashes, and underscores" >&2
+  exit 1
+fi
+
+# SECURITY: Get current branch safely (compatible with older git versions)
+current_branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || true)
 
 if [ -z "$current_branch" ]; then
   echo "Not on a git branch, aborting..." >&2
   exit 1
 fi
 
-remote_head=$(git ls-remote $first_remote --tags $current_branch | cut -f1)
+# SECURITY: Validate branch name to prevent injection
+if [[ ! "$current_branch" =~ ^[a-zA-Z0-9/_.-]+$ ]]; then
+  echo "ERROR: Invalid branch name format: $current_branch" >&2
+  echo "Branch names must contain only alphanumeric characters, slashes, dots, dashes, and underscores" >&2
+  exit 1
+fi
+
+# SECURITY: Use quoted variables and remove --tags flag (which prevents branch detection)
+# The --tags flag was incorrect here as we're looking for branch heads, not tags
+remote_head=$(git ls-remote "$first_remote" "refs/heads/$current_branch" | cut -f1)
 
 if [ -z "$remote_head" ]; then
-  echo "Branch not pushed to remote, aborting..." >&2
+  echo "Branch '$current_branch' not pushed to remote '$first_remote', aborting..." >&2
+  echo "Push your branch with: git push $first_remote $current_branch" >&2
+  exit 1
+fi
+
+# SECURITY: Validate that remote_head looks like a git SHA
+if [[ ! "$remote_head" =~ ^[a-f0-9]{40}$ ]]; then
+  echo "ERROR: Invalid git SHA format from remote: $remote_head" >&2
+  exit 1
+fi
+
+# SECURITY: Validate KAMAL_VERSION format
+if [ -n "$KAMAL_VERSION" ] && [[ ! "$KAMAL_VERSION" =~ ^[a-f0-9]{40}$ ]]; then
+  echo "ERROR: Invalid KAMAL_VERSION format: $KAMAL_VERSION" >&2
   exit 1
 fi
 
 if [ "$KAMAL_VERSION" != "$remote_head" ]; then
   echo "Version ($KAMAL_VERSION) does not match remote HEAD ($remote_head), aborting..." >&2
+  echo "This may indicate unpushed commits or a different deployment version" >&2
   exit 1
 fi
 

@@ -1,0 +1,14 @@
+<main id="playground-render-root" data-swift-ui-appearance="playground-preview-root">
+  <% if @preview_result.success? %>
+    <%= @preview_result.html %>
+  <% else %>
+    <section data-swift-ui-appearance="playground-preview-placeholder" role="alert">
+      <div>
+        <p data-swift-ui-appearance="playground-preview-placeholder-title">Preview unavailable</p>
+        <% @preview_result.diagnostics.each do |diagnostic| %>
+          <p><%= diagnostic.fetch("message", "The DSL could not be compiled.") %></p>
+        <% end %>
+      </div>
+    </section>
+  <% end %>
+</main>
