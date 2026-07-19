@@ -1,69 +1,31 @@
 <% begin %>
-  <!-- Debug info -->
-  <div class="hidden">
-    <p>Story variant: <%= story_variant.inspect %></p>
-    <p>Component props: <%= component_props.inspect %></p>
-    <p>Story instance: <%= story_instance.class.name %></p>
-  </div>
-  
-  <% if story_variant && available_stories.include?(story_variant) %>
-    <%# Use StoryRenderer to execute the story method %>
-    <% renderer = StoryRenderer.new(controller) %>
-    <% story_result = renderer.render_story(story_instance, story_variant, **component_props) %>
-    <% Rails.logger.info "Story result class: #{story_result.class}" %>
-    <% Rails.logger.info "Story result: #{story_result.inspect[0..200]}" %>
-    <% if story_result.respond_to?(:call) && story_result.is_a?(ViewComponent::Base) %>
-      <%= render story_result %>
-    <% else %>
-      <%= raw story_result %>
-    <% end %>
+  <% if defined?(component_instance) && component_instance %>
+    <% story_result = component_instance %>
   <% else %>
-    <%# Fallback: always try to render using the default story method with current props %>
-    <%# This handles cases where property updates should affect the default story %>
-    <% default_variant = available_stories.include?(:default) ? :default : available_stories.first %>
     <% renderer = StoryRenderer.new(controller) %>
-    <% story_result = renderer.render_story(story_instance, default_variant, **component_props) %>
-    <% if story_result.respond_to?(:call) && story_result.is_a?(ViewComponent::Base) %>
-      <%= render story_result %>
-    <% else %>
-      <%= raw story_result %>
-    <% end %>
+    <% selected_variant = if story_variant && available_stories.include?(story_variant)
+         story_variant
+       elsif available_stories.include?(:default)
+         :default
+       else
+         available_stories.first
+       end %>
+    <% story_result = renderer.render_story(
+         story_instance,
+         selected_variant,
+         **component_props
+       ) %>
   <% end %>
-  
-  <!-- Update indicator (hidden, shown briefly via JS) -->
-  <div id="update-indicator" class="absolute top-2 right-2 text-xs text-green-600 opacity-0 transition-opacity duration-300">
-    Updated!
-  </div>
-  
-  <% if defined?(state_data) && state_data.present? %>
-    <!-- Include state data for the state inspector -->
-    <script type="application/json" id="component-state-data">
-      <%= state_data.to_json.html_safe %>
-    </script>
+
+  <% if story_result.is_a?(ViewComponent::Base) %>
+    <%= render story_result %>
+  <% else %>
+    <%= story_result %>
   <% end %>
-  
-  <!-- Update Stimulus controllers with new props -->
-  <script>
-    (function() {
-      // Update counter controllers with new props
-      const counterControllers = document.querySelectorAll('[data-controller~="counter"]');
-      const props = <%= component_props.to_json.html_safe %>;
-      
-      counterControllers.forEach(element => {
-        const controller = Stimulus.getControllerForElementAndIdentifier(element, 'counter');
-        if (controller && controller.updateFromProps) {
-          controller.updateFromProps(props);
-        }
-      });
-    })();
-  </script>
-<% rescue => e %>
-  <div class="text-red-600">
-    <p class="font-semibold">Error rendering component:</p>
-    <p class="text-sm mt-2"><%= e.message %></p>
-    <details class="mt-2">
-      <summary class="cursor-pointer text-sm text-gray-600">Stack trace</summary>
-      <pre class="mt-2 text-xs bg-gray-900 text-gray-300 p-2 rounded overflow-x-auto"><%= e.backtrace.first(10).join("\n") %></pre>
-    </details>
+<% rescue StandardError => e %>
+  <% Rails.logger.error "Component preview rendering failed: #{e.class}: #{e.message}\n#{Array(e.backtrace).first(10).join("\n")}" %>
+  <div class="rounded-2xl border border-rose-200 bg-rose-50 p-5 text-rose-800" role="alert">
+    <p class="font-semibold">Unable to render component preview.</p>
+    <p class="mt-2 text-sm">Check the server logs for details.</p>
   </div>
 <% end %>

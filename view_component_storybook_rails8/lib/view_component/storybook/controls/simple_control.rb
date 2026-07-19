@@ -29,9 +29,9 @@ module ViewComponent
 
         # provide extension points for subclasses to vary the value
         def type
-          # :nocov:
+          # simplecov:disable
           raise NotImplementedError
-          # :nocov:
+          # simplecov:enable
         end
 
         def csf_value

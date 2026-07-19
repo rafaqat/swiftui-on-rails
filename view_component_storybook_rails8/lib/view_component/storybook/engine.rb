@@ -67,7 +67,7 @@ module ViewComponent
   end
 end
 
-# :nocov:
+# simplecov:disable
 unless defined?(ViewComponent::Storybook::Stories)
   ActiveSupport::Deprecation.warn(
     "This manually engine loading is deprecated and will be removed in v1.0.0. " \
@@ -76,4 +76,4 @@ unless defined?(ViewComponent::Storybook::Stories)
 
   require "view_component/storybook"
 end
-# :nocov:
+# simplecov:enable

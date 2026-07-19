@@ -36,8 +36,11 @@ module ViewComponent
 
         def parse_default(story_name, param)
           code_method = code_object.meths.find { |m| m.name == story_name }
+          return unless code_method
+          return code_method.default_value(param) if code_method.respond_to?(:default_value)
+
           default_value_parts = code_method.parameters.find { |parts| parts[0].chomp(":") == param.to_s }
-          return unless default_value_parts
+          return unless default_value_parts&.[](1)
 
           code_method.instance_eval(default_value_parts[1])
         end

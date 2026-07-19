@@ -38,7 +38,7 @@ module ViewComponent
     #
     mattr_accessor :stories_route, instance_writer: false
 
-    # :nocov:
+    # simplecov:disable
     if defined?(ViewComponent::Storybook::Engine)
       ActiveSupport::Deprecation.warn(
         "This manually engine loading is deprecated and will be removed in v1.0.0. " \
@@ -47,7 +47,7 @@ module ViewComponent
     elsif defined?(Rails::Engine)
       require "view_component/storybook/engine"
     end
-    # :nocov:
+    # simplecov:enable
 
     # Define how component stories titles are generated:
     #

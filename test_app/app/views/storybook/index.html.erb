@@ -1,137 +1,102 @@
-<div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100" 
-     data-controller="live-story" 
-     data-live-story-mode-value="interactive">
-  
-  <!-- Header Section -->
-  <div class="bg-white shadow-sm border-b border-gray-200">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-      <div class="flex items-center justify-between">
-        <div>
-          <h1 class="text-4xl font-bold text-gray-900">🎭 Interactive Storybook</h1>
-          <p class="text-lg text-gray-600 mt-2">Real-time SwiftUI Rails component playground</p>
-        </div>
-        <div class="flex items-center gap-4">
-          <div class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
-            🟢 Live Mode
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
+<% content_for :title, "Component Lab · SwiftUI Rails" %>
+<% stories = @stories %>
+<% variant_total = stories.sum { |story| story[:variants].length } %>
 
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-    <% if flash[:alert] %>
-      <div class="alert bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative mb-6" role="alert">
-        <span class="block sm:inline"><%= flash[:alert] %></span>
-      </div>
-    <% end %>
-    
-    <!-- Interactive Component Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-      <% @stories.each do |story| %>
-        <div class="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-100">
-          <!-- Card Header -->
-          <div class="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-6 rounded-t-xl">
-            <h2 class="text-2xl font-bold mb-2"><%= story[:name] %></h2>
-            <p class="text-blue-100">Interactive component playground</p>
-          </div>
-          
-          <!-- Live Preview Area -->
-          <div class="p-6">
-            <div class="bg-gray-50 rounded-lg p-4 mb-4 min-h-[120px] flex items-center justify-center border-2 border-dashed border-gray-300 overflow-hidden">
-              <% if story[:path] == "product_layout" %>
-                <!-- Mini Product Card Preview -->
-                <div class="scale-75 -m-8">
-                  <div class="bg-white p-4 rounded-lg shadow-md max-w-[200px]">
-                    <div class="aspect-square bg-gray-200 rounded-md mb-3 relative overflow-hidden">
-                      <img src="https://tailwindcss.com/plus-assets/img/ecommerce-images/product-page-01-related-product-04.jpg" 
-                           alt="Basic Tee" 
-                           class="w-full h-full object-cover">
-                    </div>
-                    <div class="space-y-1">
-                      <h3 class="font-semibold text-gray-900 text-sm">Basic Tee</h3>
-                      <p class="text-gray-600 text-xs">Black</p>
-                      <p class="font-bold text-gray-900 text-lg">$35</p>
-                    </div>
-                  </div>
-                </div>
-              <% elsif story[:path] == "dsl_product_card" %>
-                <!-- Mini Product Card Preview (same as product_layout) -->
-                <div class="scale-75 -m-8">
-                  <div class="bg-white p-4 rounded-lg shadow-md max-w-[200px]">
-                    <div class="aspect-square bg-gray-200 rounded-md mb-3 relative overflow-hidden">
-                      <img src="https://tailwindcss.com/plus-assets/img/ecommerce-images/product-page-01-related-product-04.jpg" 
-                           alt="Basic Tee" 
-                           class="w-full h-full object-cover">
-                    </div>
-                    <div class="space-y-1">
-                      <h3 class="font-semibold text-gray-900 text-sm">Basic Tee</h3>
-                      <p class="text-gray-600 text-xs">Black</p>
-                      <p class="font-bold text-gray-900 text-lg">$35</p>
-                    </div>
-                  </div>
-                </div>
-              <% elsif story[:path] == "dsl_button" %>
-                <!-- Mini Button Preview -->
-                <button class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
-                  Click Me
-                </button>
-              <% elsif story[:path] == "dsl_card" %>
-                <!-- Mini Card Preview -->
-                <div class="bg-white p-4 rounded-lg shadow-md border border-gray-200">
-                  <h3 class="font-semibold text-gray-900 mb-2">Card Title</h3>
-                  <p class="text-sm text-gray-600">Card content goes here</p>
-                </div>
-              <% else %>
-                <!-- Default Preview -->
-                <div class="text-center">
-                  <div class="inline-flex items-center justify-center w-12 h-12 bg-blue-100 rounded-full mb-3">
-                    <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
-                    </svg>
-                  </div>
-                  <p class="text-sm text-gray-600">Live Preview</p>
-                </div>
-              <% end %>
-            </div>
-            
-            <!-- Interactive Features -->
-            <div class="space-y-3 mb-4">
-              <div class="flex items-center gap-2">
-                <div class="w-2 h-2 bg-green-400 rounded-full"></div>
-                <span class="text-sm text-gray-600">Real-time prop updates</span>
-              </div>
-              <div class="flex items-center gap-2">
-                <div class="w-2 h-2 bg-blue-400 rounded-full"></div>
-                <span class="text-sm text-gray-600">Live state management</span>
-              </div>
-              <div class="flex items-center gap-2">
-                <div class="w-2 h-2 bg-purple-400 rounded-full"></div>
-                <span class="text-sm text-gray-600">Interactive controls</span>
-              </div>
-            </div>
-            
-            <!-- Action Buttons -->
-            <div class="flex gap-3">
-              <%= link_to storybook_show_path(story: story[:path]), 
-                  class: "flex-1 inline-flex items-center justify-center px-4 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200 transform hover:scale-105 font-semibold",
-                  data: { turbo_frame: "_top" } do %>
-                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-                </svg>
-                Launch Interactive
-              <% end %>
-            </div>
-          </div>
-        </div>
-      <% end %>
-    </div>
-    
-    <% if @stories.empty? %>
-      <div class="bg-white rounded-lg shadow-md p-8 text-center">
-        <p class="text-gray-600">No component stories found.</p>
-        <p class="text-sm text-gray-500 mt-2">Create stories in test/components/stories/</p>
-      </div>
-    <% end %>
-  </div>
-</div>
+<%= swift_ui do
+  section(id: "storybook-catalog", class: "min-h-screen bg-slate-50 text-slate-950") do
+    header(class: "overflow-hidden bg-slate-950 text-white") do
+      div(class: "mx-auto grid max-w-7xl gap-10 px-6 py-16 lg:grid-cols-[1.5fr_1fr] lg:items-end") do
+        vstack(alignment: :start, spacing: 12) do
+          a("← Showcase", href: root_path)
+            .tw("text-sm font-black text-cyan-300 hover:text-cyan-200")
+          text("Rails-owned component lab")
+            .tw("mt-6 text-xs font-black uppercase tracking-[0.35em] text-violet-300")
+          h1("Inspect the system, not screenshots.")
+            .tw("max-w-4xl text-5xl font-black tracking-tight sm:text-6xl")
+          p("Submit real props, navigate source-backed variants, and inspect server state without creating a second JavaScript application.")
+            .tw("max-w-3xl text-lg leading-8 text-slate-300")
+        end
+
+        grid(columns: 3, spacing: 12) do
+          [
+            ["Curated labs", stories.length],
+            ["Variants", variant_total],
+            ["State owner", "Rails"]
+          ].each do |label_text, value|
+            div(class: "rounded-2xl border border-white/10 bg-white/5 p-4") do
+              text(label_text).tw("block text-xs uppercase tracking-wider text-slate-400")
+              text(value.to_s).tw("mt-2 block text-3xl font-black")
+            end
+          end
+        end
+      end
+    end
+
+    div(class: "mx-auto max-w-7xl px-6 py-12") do
+      if flash[:alert]
+        div(flash[:alert], role: "alert", class: "mb-8 rounded-xl border border-rose-300 bg-rose-50 px-4 py-3 text-rose-800")
+      end
+
+      stories.group_by { |story| story[:category] }.each do |category, category_stories|
+        section(class: "mb-14", aria: { labelledby: "#{category.parameterize}-stories" }) do
+          div(class: "mb-6 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between") do
+            div do
+              text(category).tw("text-xs font-black uppercase tracking-[0.25em] text-violet-600")
+              h2(
+                category == "Flagship" ? "Complete interface compositions" : "#{category} explorations",
+                id: "#{category.parameterize}-stories"
+              ).tw("mt-1 text-3xl font-black tracking-tight")
+            end
+            text(pluralize(category_stories.sum { |story| story[:variants].length }, "source-backed variant"))
+              .tw("text-sm text-slate-500")
+          end
+
+          div(class: "grid gap-6 md:grid-cols-2 #{category == 'Flagship' ? 'xl:grid-cols-2' : 'xl:grid-cols-3'}") do
+            category_stories.each do |story|
+              article(
+                class: "group overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl",
+                data: { story_key: story[:path] }
+              ) do
+                div(class: "bg-gradient-to-r #{story[:accent]} p-6 text-white") do
+                  hstack(spacing: 12, alignment: :start) do
+                    vstack(alignment: :start, spacing: 4) do
+                      text(story[:category]).tw("text-xs font-bold uppercase tracking-[0.25em] text-white/75")
+                      h3(story[:name]).tw("text-2xl font-black")
+                    end
+                    spacer
+                    text(pluralize(story[:variants].length, "variant"))
+                      .tw("rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-bold")
+                  end
+                end
+
+                div(class: "p-6") do
+                  p(story[:description]).tw("min-h-16 leading-7 text-slate-600")
+
+                  div(class: "mt-5 flex min-h-16 flex-wrap content-start gap-2", aria: { label: "Available variants" }) do
+                    story[:variants].first(4).each do |variant|
+                      text(variant.to_s.humanize)
+                        .tw("rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600")
+                    end
+                    if story[:variants].length > 4
+                      text("+#{story[:variants].length - 4} more")
+                        .tw("rounded-full bg-violet-50 px-2.5 py-1 text-xs font-bold text-violet-700")
+                    end
+                  end
+
+                  hstack(spacing: 12, alignment: :center, class: "mt-6 border-t border-slate-100 pt-5") do
+                    text(story[:file].basename.to_s).tw("font-mono text-xs text-slate-400")
+                    spacer
+                    a(
+                      "Open preview →",
+                      href: story_path(story: story[:path], story_variant: story[:default_variant])
+                    ).tw("rounded-xl bg-slate-950 px-4 py-2.5 text-sm font-bold text-white transition group-hover:bg-violet-600")
+                  end
+                end
+              end
+            end
+          end
+        end
+      end
+    end
+  end
+end %>

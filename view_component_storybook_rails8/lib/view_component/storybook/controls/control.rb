@@ -18,15 +18,15 @@ module ViewComponent
         end
 
         def to_csf_params
-          # :nocov:
+          # simplecov:disable
           raise NotImplementedError
-          # :nocov:
+          # simplecov:enable
         end
 
         def parse_param_value(value)
-          # :nocov:
+          # simplecov:disable
           raise NotImplementedError
-          # :nocov:
+          # simplecov:enable
         end
       end
     end

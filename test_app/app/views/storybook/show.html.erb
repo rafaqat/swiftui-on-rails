@@ -1,853 +1,222 @@
-<div class="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50" 
-     data-controller="live-story"
-     data-live-story-story-value="<%= params[:story] %>"
-     data-live-story-variant-value="<%= @story_variant %>"
-     data-live-story-session-id-value="<%= session.id %>-<%= Time.current.to_i %>"
-     data-live-story-update-url-value="/storybook/update_preview"
-     data-live-story-mode-value="interactive"
-     data-turbo-permanent>
-  
-  <!-- Enhanced Header with Interactive Controls -->
-  <div class="bg-white shadow-lg border-b border-gray-200">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex items-center justify-between py-6">
-        <div class="flex items-center gap-4">
-          <%= link_to storybook_index_path, 
-              class: "inline-flex items-center text-blue-600 hover:text-blue-700 transition-colors",
-              data: { turbo_frame: "_top" } do %>
-            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
-            </svg>
-            Back to Storybook
-          <% end %>
-          <div class="h-6 w-px bg-gray-300"></div>
-          <div>
-            <h1 class="text-3xl font-bold text-gray-900"><%= @story_name %></h1>
-            <p class="text-sm text-gray-600">Interactive Component Playground</p>
-          </div>
-        </div>
-        
-        <div class="flex items-center gap-6">
-          <!-- Live Status Indicator -->
-          <div class="flex items-center gap-2">
-            <div class="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
-            <span class="text-sm font-medium text-gray-700">Live Mode</span>
-          </div>
-          
-          <!-- Interactive Mode Toggle -->
-          <label class="flex items-center cursor-pointer group">
-            <span class="text-sm font-medium text-gray-700 mr-3">Interactive Mode</span>
-            <div class="relative">
-              <input type="checkbox" 
-                     data-live-story-target="modeToggle"
-                     class="sr-only peer"
-                     checked>
-              <div class="w-16 h-8 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-7 after:w-7 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-blue-600 peer-checked:to-purple-600"></div>
-            </div>
-          </label>
-          
-          <!-- Quick Actions -->
-          <div class="flex gap-2">
-            <button>
-              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
-              </svg>
-              Export
-            </button>
-            <button>
-              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z"></path>
-              </svg>
-              Share
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-  
-  <div class="flex h-[calc(100vh-5rem)]">
-    <!-- Enhanced Interactive Controls Panel -->
-    <div class="w-96 bg-white shadow-xl overflow-y-auto border-r border-gray-200">
-      <div class="p-6" data-live-story-target="controls">
-        <!-- Controls Header -->
-        <div class="flex items-center justify-between mb-6">
-          <div>
-            <h2 class="text-xl font-bold text-gray-900">⚡ Live Controls</h2>
-            <p class="text-sm text-gray-600">Real-time property updates</p>
-          </div>
-          <button>
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-            </svg>
-          </button>
-        </div>
-        
-        <!-- Interactive Form with Enhanced Controls -->
-        <turbo-frame id="controls-form" data-turbo-permanent>
-          <%= form_with url: storybook_show_path, 
-                        method: :get,
-                        data: { 
-                          "live-story-target": "form",
-                          turbo: false 
-                        },
-                        class: "space-y-6" do |f| %>
-            <%= hidden_field_tag :story, params[:story] %>
-            
-            <% if @story_config && @story_config[:controls] %>
-              <% @story_config[:controls].each_with_index do |(key, control), index| %>
-                <div class="bg-gray-50 rounded-xl p-4 transition-all duration-200 hover:bg-gray-100 border border-gray-200">
-                  <!-- Property Header -->
-                  <div class="flex items-center justify-between mb-3">
-                    <div class="flex items-center gap-2">
-                      <div class="w-3 h-3 rounded-full bg-gradient-to-r from-blue-500 to-purple-500"></div>
-                      <label class="text-sm font-semibold text-gray-800">
-                        <%= key.to_s.humanize %>
-                      </label>
-                    </div>
-                    <span class="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
-                      <%= control[:type] %>
-                    </span>
-                  </div>
-                  
-                  <!-- Interactive Control -->
-                  <% case control[:type] %>
-                  <% when :text %>
-                    <div class="relative">
-                      <%= text_field_tag key, @component_props[key], 
-                          class: "w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm",
-                          placeholder: "Enter #{key.to_s.humanize.downcase}...",
-                          data: { 
-                            "live-story-target": "control",
-                            action: "input->live-story#controlChanged".html_safe
-                          } %>
-                      <div class="absolute inset-y-0 right-0 flex items-center pr-3">
-                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                        </svg>
-                      </div>
-                    </div>
-                  
-                  <% when :select %>
-                    <div class="relative">
-                      <%= select_tag key, 
-                          options_for_select(control[:options].map { |opt| [opt.to_s.humanize, opt] }, @component_props[key]), 
-                          class: "w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm appearance-none",
-                          data: { 
-                            "live-story-target": "control",
-                            action: "change->live-story#controlChanged".html_safe
-                          } %>
-                      <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                        </svg>
-                      </div>
-                    </div>
-                    <!-- Visual Options Preview -->
-                    <% if key.to_s.include?('color') %>
-                      <!-- Color Swatches for Color Controls -->
-                      <div class="flex flex-wrap gap-2 mt-3">
-                        <% control[:options].each do |option| %>
-                          <% if option.to_s.empty? %>
-                            <!-- Default/Empty option -->
-                            <button type="button" 
-                                    class="w-8 h-8 border-2 rounded-md transition-all <%= @component_props[key] == option ? 'border-blue-500 ring-2 ring-blue-200' : 'border-gray-300 hover:border-gray-400' %> bg-gradient-to-br from-white to-gray-100 flex items-center justify-center"
-                                    data-action="click->live-story#selectOption"
-                                    data-field="<%= key %>"
-                                    data-value="<%= option %>"
-                                    title="Default">
-                              <span class="text-xs text-gray-400">×</span>
-                            </button>
-                          <% else %>
-                            <!-- Color swatch -->
-                            <button type="button" 
-                                    class="w-8 h-8 border-2 rounded-md transition-all <%= @component_props[key] == option ? 'border-blue-500 ring-2 ring-blue-200' : 'border-gray-300 hover:border-gray-400' %> text-<%= option %>"
-                                    style="background-color: <%= tailwind_color_to_css(option) %>;"
-                                    data-action="click->live-story#selectOption"
-                                    data-field="<%= key %>"
-                                    data-value="<%= option %>"
-                                    title="<%= option.humanize %>">
-                            </button>
-                          <% end %>
-                        <% end %>
-                      </div>
-                    <% else %>
-                      <!-- Regular text options for non-color controls -->
-                      <div class="flex gap-2 mt-2">
-                        <% control[:options].each do |option| %>
-                          <button type="button" 
-                                  class="px-2 py-1 text-xs rounded-md transition-colors <%= @component_props[key] == option ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-600 hover:bg-gray-200' %>"
-                                  data-action="click->live-story#selectOption"
-                                  data-field="<%= key %>"
-                                  data-value="<%= option %>">
-                            <%= option.to_s.humanize %>
-                          </button>
-                        <% end %>
-                      </div>
-                    <% end %>
-                  
-                  <% when :number %>
-                    <div class="relative">
-                      <%= number_field_tag key, @component_props[key], 
-                          class: "w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm",
-                          min: control[:min],
-                          max: control[:max],
-                          step: control[:step] || 1,
-                          data: { 
-                            "live-story-target": "control",
-                            action: "input->live-story#controlChanged".html_safe
-                          } %>
-                      <div class="absolute inset-y-0 right-0 flex items-center pr-3">
-                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
-                        </svg>
-                      </div>
-                    </div>
-                  
-                  <% when :boolean %>
-                    <label class="relative inline-flex items-center cursor-pointer">
-                      <%= check_box_tag key, "1", @component_props[key], 
-                          class: "sr-only peer",
-                          data: { 
-                            "live-story-target": "control",
-                            action: "change->live-story#controlChanged".html_safe
-                          } %>
-                      <div class="w-14 h-7 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-green-400 peer-checked:to-blue-500"></div>
-                      <span class="ml-3 text-sm font-medium text-gray-700">
-                        <%= @component_props[key] ? "Enabled" : "Disabled" %>
-                      </span>
-                    </label>
-                  <% end %>
-                  
-                  <!-- Real-time Value Display -->
-                  <div class="mt-2 text-xs text-gray-500 font-mono bg-gray-100 px-2 py-1 rounded">
-                    Current: <%= @component_props[key].inspect %>
-                  </div>
-                </div>
-              <% end %>
-            <% end %>
-          
-          <div class="pt-4 text-sm text-gray-500 border-t border-gray-200">
-            <p class="flex items-center">
-              <svg class="w-4 h-4 mr-1 animate-pulse" fill="currentColor" viewBox="0 0 20 20">
-                <circle cx="10" cy="10" r="3"/>
-              </svg>
-              Live preview updates automatically
-            </p>
-          </div>
-        <% end %>
-        
-        <!-- Story Variants -->
-        <% if @available_stories && @available_stories.size > 1 %>
-          <div class="mt-6 pt-6 border-t border-gray-200">
-            <h3 class="text-sm font-medium text-gray-700 mb-3">Story Variants</h3>
-            <div class="space-y-2">
-              <% @available_stories.each do |variant| %>
-                <%= link_to variant.to_s.humanize, 
-                    "#",
-                    data: { 
-                      variant: variant,
-                      "live-story-target": "variantLink",
-                      action: "click->live-story#switchVariant".html_safe
-                    },
-                    class: "block px-3 py-2 text-sm rounded-md transition-colors duration-150 #{
-                      variant == @story_variant ? 
-                      'bg-blue-100 text-blue-700 font-medium' : 
-                      'text-gray-700 hover:bg-gray-100'
-                    }" %>
-              <% end %>
-            </div>
-          </div>
-        <% end %>
-        
-        <!-- State Inspector (Interactive Mode Only) -->
-        <div class="mt-6 pt-6 border-t border-gray-200" 
-             data-controller="state-inspector"
-             data-state-inspector-story-value="<%= @story_name %>"
-             data-state-inspector-variant-value="<%= @story_variant %>"
-             data-state-inspector-session-id-value="<%= @session_id %>"
-             data-live-story-target="stateInspector" 
-             style="display: none;">
-          <h3 class="text-sm font-medium text-gray-700 mb-3">Component State</h3>
-          <div data-state-inspector-target="display" class="bg-gray-50 p-3 rounded border text-sm">
-            <div class="text-gray-500 italic">Loading state...</div>
-          </div>
-          <!-- Content will be populated by JavaScript -->
-        </div>
-      </div>
-    </div>
-    
-    <!-- Enhanced Component Preview Area -->
-    <div class="flex-1 overflow-y-auto bg-gradient-to-br from-gray-50 to-blue-50">
-      <div class="p-8" data-live-story-target="preview" id="preview-container">
-        
-        <!-- Interactive Preview Card -->
-        <div class="bg-white rounded-2xl shadow-xl border border-gray-200 mb-8 overflow-hidden">
-          <!-- Preview Header -->
-          <div class="bg-gradient-to-r from-gray-800 to-gray-900 text-white p-6">
-            <div class="flex items-center justify-between">
-              <div class="flex items-center gap-3">
-                <div class="flex gap-1">
-                  <div class="w-3 h-3 bg-red-400 rounded-full"></div>
-                  <div class="w-3 h-3 bg-yellow-400 rounded-full"></div>
-                  <div class="w-3 h-3 bg-green-400 rounded-full"></div>
-                </div>
-                <h2 class="text-xl font-semibold">🎨 Live Preview</h2>
-              </div>
-              <div class="flex items-center gap-4">
-                <!-- Responsive Preview Controls -->
-                <div class="flex items-center gap-2">
-                  <button title="Mobile View">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a1 1 0 001-1V4a1 1 0 00-1-1H8a1 1 0 00-1 1v16a1 1 0 001 1z"></path>
-                    </svg>
-                  </button>
-                  <button title="Tablet View">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
-                    </svg>
-                  </button>
-                  <button title="Desktop View">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 002 2z"></path>
-                    </svg>
-                  </button>
-                </div>
-                
-                <!-- Live Status -->
-                <div class="flex items-center gap-2 px-3 py-1 bg-green-600 rounded-full">
-                  <div class="w-2 h-2 bg-green-300 rounded-full animate-pulse"></div>
-                  <span class="text-sm font-medium">Live</span>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <!-- Component Stage -->
-          <div class="p-8">
-            <turbo-frame id="component-preview" data-turbo-permanent>
-              <div class="relative min-h-[400px] bg-gradient-to-br from-white to-gray-50 rounded-xl border-2 border-dashed border-gray-200 p-8 transition-all duration-300 hover:border-blue-300 hover:bg-gradient-to-br hover:from-blue-50 hover:to-purple-50">
-                <!-- Interactive Grid Background -->
-                <div class="absolute inset-0 opacity-5">
-                  <div class="grid grid-cols-12 h-full">
-                    <% 12.times do %>
-                      <div class="border-r border-gray-400"></div>
-                    <% end %>
-                  </div>
-                </div>
-                
-                <!-- Component Render Area -->
-                <div class="relative z-10 flex items-center justify-center min-h-[300px]">
-                  <%= render "storybook/component_preview", 
-                             component_class: @component_class,
-                             component_props: @component_props,
-                             story_instance: @story_instance,
-                             story_variant: @story_variant,
-                             available_stories: @available_stories %>
-                </div>
-                
-                <!-- Interactive Overlay REMOVED - should not inject buttons over component view -->
-              </div>
-            </turbo-frame>
-          </div>
-        </div>
-        
-        
-        <!-- Component/Story Source Info -->
-        <div class="bg-white rounded-lg shadow-md p-8 mt-6">
-          <% # For DSL stories, show story source even if a component class exists %>
-          <% is_dsl_story = params[:story].start_with?('dsl_') || params[:story].include?('product_layout') %>
-          <h2 class="text-lg font-semibold text-gray-900 mb-4"><%= is_dsl_story ? "DSL Story Source" : "Component Definition" %></h2>
-          <div class="text-sm text-gray-700">
-            <% if !is_dsl_story && @component_class %>
-              <p class="mb-2">This component is defined as:</p>
-              <pre class="bg-gray-100 p-3 rounded"><code>class <%= @component_class.name %> < <%= @component_class.superclass.name %>
-  <% if @component_class.name == 'CounterComponent' %># Stateless component with client-side state management
-  prop :initial_count, type: Integer, default: 0
-  prop :step, type: Integer, default: 1
-  prop :label, type: String, default: "Counter"
-  
-  swift_ui do
-    vstack(spacing: 4) do
-      # Title
-      text("")
-        .font_size("2xl")
-        .font_weight("bold")
-        .data("counter-target": "label")
-      
-      # Count display
-      text("")
-        .font_size("6xl")
-        .font_weight("black")
-        .data("counter-target": "count")
-      
-      # Control buttons
-      hstack(spacing: 2) do
-        button("-")
-          .bg("red-500")
-          .text_color("white")
-          .px(4).py(2)
-          .rounded("lg")
-          .data(action: "click->counter#decrement")
-        
-        button("Reset")
-          .bg("gray-500")
-          .text_color("white")
-          .px(4).py(2)
-          .rounded("lg")
-          .data(action: "click->counter#reset")
-        
-        button("+")
-          .bg("green-500")
-          .text_color("white")
-          .px(4).py(2)
-          .rounded("lg")
-          .data(action: "click->counter#increment")
-      end
-    end
-    .p(6)
-    .bg("white")
-    .rounded("xl")
-    .shadow("lg")
-    .data(controller: "counter",
-          "counter-count-value": initial_count,
-          "counter-step-value": step,
-          "counter-label-value": label)
-  end<% else %>  # Uses SwiftUI Rails DSL for component definition
-  swift_ui do
-    # Component implementation using Swift DSL
-  end<% end %>
-end</code></pre>
-            <% else %>
-              <% # Show story source code if available %>
-              <% if @story_source_code %>
-                <p class="mb-2">Story implementation from <code class="bg-gray-100 px-1 py-0.5 rounded"><%= params[:story] %>_stories.rb</code>:</p>
-                <pre class="bg-gray-100 p-3 rounded overflow-x-auto mb-6"><code><%= @story_source_code %></code></pre>
-              <% end %>
-              <p class="mb-2">How to use this DSL element in your ERB views:</p>
-              <% case params[:story] %>
-              <% when 'dsl_button' %>
-                <pre class="bg-gray-100 p-3 rounded overflow-x-auto"><code># In your ERB view:
-&lt;%= swift_ui do
-  button("Click Me")
-    .bg("blue-600")
-    .text_color("white")
-    .px(4).py(2)
-    .rounded("md")
-    .font_weight("medium")
-    .hover("opacity-90")
-    .focus("ring-2 ring-blue-500")
-    .transition
-    .stimulus_controller("my-controller")
-    .stimulus_action("click->my-controller#handleClick")
-end %&gt;
+<% content_for :title, "#{@story_name} · Component Lab" %>
+<% story_name = @story_name %>
+<% story_key = @story_key %>
+<% story_variant = @story_variant %>
+<% session_id = @session_id %>
+<% story_config = @story_config %>
+<% component_props = @component_props %>
+<% available_stories = @available_stories %>
+<% state_data = @state_data %>
+<% component_class = @component_class %>
+<% component_instance = @component_instance %>
+<% story_instance = @story_instance %>
+<% dsl_story = @dsl_story %>
+<% story_source_path = @story_source_path %>
+<% story_source_code = @story_source_code %>
 
-# Or with variables:
-&lt;%= swift_ui do
-  button(@button_text)
-    .bg(@primary_color || "blue-600")
-    .text_color("white")
-    .px(4).py(2)
-    .rounded("lg")
-    .disabled(@form.processing?)
-end %&gt;</code></pre>
-              <% when 'dsl_card' %>
-                <pre class="bg-gray-100 p-3 rounded overflow-x-auto"><code># In your ERB view:
-&lt;%= swift_ui do
-  div
-    .bg("white")
-    .rounded("lg")
-    .shadow("md")
-    .p(6) do
-    
-    # Card header
-    div.pb(4).border_b.border_color("gray-200") do
-      text("Card Title")
-        .font_size("xl")
-        .font_weight("bold")
-        .text_color("gray-900")
-    end
-    
-    # Card content
-    div.py(4) do
-      text("Your card content goes here...")
-        .text_color("gray-700")
-    end
-    
-    # Card footer with actions
-    div.pt(4).flex.justify_end.gap(3) do
-      button("Cancel")
-        .px(4).py(2)
-        .text_color("gray-700")
-        .hover("text-gray-900")
-      
-      button("Save")
-        .bg("blue-600")
-        .text_color("white")
-        .px(4).py(2)
-        .rounded("md")
-        .hover("bg-blue-700")
-    end
-  end
-end %&gt;</code></pre>
-              <% when 'dsl_product_card' %>
-                <pre class="bg-gray-100 p-3 rounded overflow-x-auto"><code># In your ERB view - Single Product Card:
-&lt;%= swift_ui do
-  div.group.relative do
-    # Product image
-    image(
-      src: product.image_url,
-      alt: product.name,
-      class: "aspect-square w-full rounded-md bg-gray-200 object-cover group-hover:opacity-75"
-    )
-    
-    # Product info
-    div.mt(4).flex.justify_between do
-      div do
-        h3.text_size("sm").text_color("gray-700") do
-          a(href: product_path(product)) do
-            span.absolute.inset(0).aria_hidden("true")
-            text(product.name)
-          end
+<%= swift_ui do
+  section(id: "storybook-preview-page", class: "min-h-screen bg-slate-50 text-slate-950") do
+    header(class: "border-b border-slate-200 bg-white") do
+      div(class: "mx-auto flex max-w-7xl flex-col gap-6 px-6 py-8 lg:flex-row lg:items-end lg:justify-between") do
+        vstack(alignment: :start, spacing: 8) do
+          a("← Component Lab", href: rails_stories_path)
+            .tw("text-sm font-black text-violet-700 hover:text-violet-900")
+          h1(story_name).tw("text-4xl font-black tracking-tight")
+          p("A Rails-owned preview: URL props, server state, and declared SwiftUI Rails actions.")
+            .tw("max-w-3xl text-sm font-medium text-slate-500")
         end
-        p.mt(1).text_size("sm").text_color("gray-500") do
-          text(product.variant)
-        end
-      end
-      p.text_size("sm").font_weight("medium").text_color("gray-900") do
-        text("$#{product.price}")
-      end
-    end
-  end
-end %&gt;
 
-# With sale badge:
-&lt;%= swift_ui do
-  div.group.relative do
-    div.relative do
-      image(src: product.image_url, alt: product.name, 
-            class: "aspect-square w-full rounded-md bg-gray-200 object-cover group-hover:opacity-75")
-      
-      if product.on_sale?
-        div.absolute.top(2).left(2) do
-          span.bg("red-500").text_color("white").px(2).py(1).rounded("md").text_size("xs").font_weight("semibold") do
-            text("Sale")
-          end
+        hstack(spacing: 8, alignment: :center) do
+          span("Server rendered")
+            .tw("rounded-full bg-emerald-100 px-3 py-1 text-xs font-black uppercase tracking-wider text-emerald-800")
+          span(story_variant.to_s.humanize)
+            .tw("rounded-full bg-violet-100 px-3 py-1 text-xs font-black uppercase tracking-wider text-violet-800")
         end
       end
     end
-    
-    div.mt(4).flex.justify_between do
-      div do
-        h3.text_size("sm").text_color("gray-700") do
-          link_to product.name, product_path(product),
-                  class: "after:absolute after:inset-0"
-        end
-        p.mt(1).text_size("sm").text_color("gray-500") do
-          text(product.variant)
-        end
-      end
-      div.text_right do
-        if product.on_sale?
-          p.text_size("sm").font_weight("medium").text_color("red-600") do
-            text("$#{product.sale_price}")
-          end
-          p.text_size("xs").text_color("gray-500").line_through do
-            text("$#{product.original_price}")
-          end
-        else
-          p.text_size("sm").font_weight("medium").text_color("gray-900") do
-            text("$#{product.price}")
-          end
-        end
-      end
-    end
-  end
-end %&gt;</code></pre>
-              <% when 'product_layout_simple' %>
-                <div class="mb-6">
-                  <p class="mb-3 font-medium">What is the Product Layout Simple DSL Story?</p>
-                  <p class="mb-4">The Product Layout Simple story demonstrates building product grids using pure SwiftUI Rails DSL. It shows how to use the reusable <code class="bg-gray-100 px-1 py-0.5 rounded">dsl_product_card</code> method for consistent product displays.</p>
-                  
-                  <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-                    <p class="text-blue-900 font-medium mb-2">Key Features:</p>
-                    <ul class="list-disc list-inside space-y-1 text-blue-800">
-                      <li>Dynamic grid layouts (2x, 3x, or 4x columns)</li>
-                      <li>Reusable <code class="bg-gray-100 px-1 py-0.5 rounded">dsl_product_card</code> method</li>
-                      <li>Product image, name, variant, and price display</li>
-                      <li>Add to Cart CTA button</li>
-                      <li>Filter section in the "with_filters" variant</li>
-                      <li>Sort dropdown in the "four_column_grid" variant</li>
-                      <li>Responsive design with Tailwind utilities</li>
-                    </ul>
-                  </div>
-                  
-                  <p class="mb-2 font-medium">Available Variants:</p>
-                  <ul class="list-disc list-inside space-y-1 text-gray-600 mb-4">
-                    <li><strong>default</strong> - 2-column grid with basic product display</li>
-                    <li><strong>with_filters</strong> - 3-column grid with filter buttons</li>
-                    <li><strong>four_column_grid</strong> - 4-column grid with sort dropdown</li>
-                  </ul>
-                </div>
-                <p class="mb-2 font-medium">Example usage in your ERB view:</p>
-                <pre class="bg-gray-100 p-3 rounded overflow-x-auto"><code># In your Rails controller:
-@products = [
-  { name: "Basic Tee", variant: "Black", price: 35, image: "..." },
-  { name: "Nomad Tumbler", variant: "White", price: 35, image: "..." }
-]
 
-# In your ERB view:
-&lt;%= swift_ui do
-  section.bg("gray-50").min_h("screen") do
-    div.max_w("7xl").mx("auto").px(4).py(8) do
-      # Header
-      hstack(alignment: :center).mb(8) do
-        vstack(alignment: :start, spacing: 2) do
-          text("Product Catalog")
-            .text_size("3xl")
-            .font_weight("bold")
-            .text_color("gray-900")
-          
-          text("#{@products.count} items")
-            .text_size("base")
-            .text_color("gray-600")
-        end
-        spacer
-      end
-      
-      # Product grid using reusable DSL method
-      grid(columns: 3, spacing: 6) do
-        @products.each do |product|
-          dsl_product_card(
-            name: product[:name],
-            price: product[:price],
-            image_url: product[:image],
-            variant: product[:variant],
-            currency: "$",
-            show_cta: true,
-            cta_text: "Add to Cart",
-            cta_style: "primary"
-          )
-        end
-      end
-    end
-  end
-end %&gt;
+    div(class: "mx-auto grid max-w-7xl gap-8 px-6 py-10 lg:grid-cols-[20rem_minmax(0,1fr)]") do
+      aside(class: "space-y-6") do
+        section(class: "rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-900/10") do
+          h2("Preview Controls").tw("text-xl font-black")
+          p("Change values, then submit one explicit Rails transition.")
+            .tw("mt-2 text-sm leading-6 text-slate-500")
 
-# Using the dsl_product_card method directly:
-&lt;%= swift_ui do
-  dsl_product_card(
-    name: "Premium Hoodie",
-    price: 89,
-    image_url: "/images/hoodie.jpg",
-    variant: "Navy Blue",
-    currency: "$",
-    show_cta: true,
-    cta_text: "Add to Cart",
-    cta_style: "outline"
-  )
-end %&gt;</code></pre>
-              <% when 'product_layout' %>
-                <div class="mb-6">
-                  <p class="mb-3 font-medium">What is the Product Layout DSL Story?</p>
-                  <p class="mb-4">The Product Layout story is a comprehensive example of building flexible e-commerce layouts using pure SwiftUI Rails DSL. Unlike component-based stories, this uses only DSL elements to create complex, interactive layouts.</p>
-                  
-                  <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-                    <p class="text-blue-900 font-medium mb-2">Key Features:</p>
-                    <ul class="list-disc list-inside space-y-1 text-blue-800">
-                      <li>Dynamic grid layouts (1x, 2x, or 4x columns)</li>
-                      <li>Interactive filter systems with visible UI (not dropdowns)</li>
-                      <li>Top or sidebar filter positioning</li>
-                      <li>Price range filters with button groups</li>
-                      <li>Color swatches with visual selection</li>
-                      <li>Category filters with counts</li>
-                      <li>Integrated DSL product cards with CTA buttons</li>
-                      <li>Currency symbol customization</li>
-                      <li>Responsive design patterns</li>
-                    </ul>
-                  </div>
-                  
-                  <p class="mb-2 font-medium">Implementation Pattern:</p>
-                  <p class="mb-4 text-gray-600">This story creates the entire layout using DSL elements like <code class="bg-gray-100 px-1 py-0.5 rounded">div</code>, <code class="bg-gray-100 px-1 py-0.5 rounded">hstack</code>, <code class="bg-gray-100 px-1 py-0.5 rounded">vstack</code>, <code class="bg-gray-100 px-1 py-0.5 rounded">grid</code>, and <code class="bg-gray-100 px-1 py-0.5 rounded">card</code>. It demonstrates how complex interfaces can be built without creating custom ViewComponent classes.</p>
-                </div>
-                <p class="mb-2 font-medium">Example usage in your ERB view:</p>
-                <pre class="bg-gray-100 p-3 rounded overflow-x-auto"><code># In your ERB view:
-&lt;%= swift_ui do
-  section.bg("white").px(4).py(8) do
-    # Title
-    h2.text_size("2xl").font_weight("bold").mb(6) do
-      text("Featured Products")
-    end
-    
-    # Product grid
-    div.grid.grid_cols(1).sm("grid-cols-2").lg("grid-cols-4").gap(6) do
-      @products.each do |product|
-        # Product card
-        div
-          .bg("white")
-          .border.border_color("gray-200")
-          .rounded("lg")
-          .overflow("hidden")
-          .group
-          .hover("shadow-lg")
-          .transition("shadow") do
-          
-          # Product image
-          div.aspect("square").bg("gray-100").relative do
-            image(
-              src: product.image_url,
-              alt: product.name,
-              class: "w-full h-full object-cover"
+          form(
+            action: story_path(story: story_key),
+            method: "get",
+            data: { turbo_frame: "_top" },
+            class: "mt-6 space-y-5",
+            id: "storybook-controls"
+          ) do
+            input(type: "hidden", name: "story_variant", value: story_variant)
+
+            story_config.fetch(:controls).each do |key, control|
+              control_id = "storybook-control-#{key}"
+
+              div(class: "space-y-2") do
+                hstack(spacing: 6, alignment: :center) do
+                  label(key.to_s.humanize, for_input: control_id)
+                    .tw("text-sm font-black text-slate-800")
+                  spacer
+                  span(control.fetch(:type).to_s)
+                    .tw("rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-slate-500")
+                end
+
+                case control[:type]
+                when :text
+                  input(
+                    id: control_id,
+                    type: "text",
+                    name: key,
+                    value: component_props[key],
+                    placeholder: "Enter #{key.to_s.humanize.downcase}"
+                  ).tw("w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm focus:border-violet-600 focus:outline-none")
+                when :select
+                  select(id: control_id, name: key, selected: component_props[key]) do
+                    Array(control[:options]).each do |option_value|
+                      option(
+                        option_value.to_s,
+                        option_value.to_s.presence&.humanize || "Default",
+                        selected: option_value.to_s == component_props[key].to_s
+                      )
+                    end
+                  end.tw("w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm focus:border-violet-600 focus:outline-none")
+                when :number
+                  input(
+                    id: control_id,
+                    type: "number",
+                    name: key,
+                    value: component_props[key],
+                    min: control[:min],
+                    max: control[:max],
+                    step: control[:step] || 1
+                  ).tw("w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm focus:border-violet-600 focus:outline-none")
+                when :boolean
+                  input(type: "hidden", name: key, value: "0")
+                  label(for_input: control_id, class: "flex cursor-pointer items-center gap-3 rounded-xl bg-slate-50 px-3 py-2") do
+                    input(
+                      id: control_id,
+                      type: "checkbox",
+                      name: key,
+                      value: "1",
+                      checked: component_props[key]
+                    ).tw("h-4 w-4 rounded border-slate-300 text-violet-600 focus:ring-violet-600")
+                    span(component_props[key] ? "Enabled" : "Disabled")
+                      .tw("text-sm font-bold text-slate-700")
+                  end
+                end
+
+                text("Current: #{component_props[key].inspect}")
+                  .tw("block font-mono text-xs text-slate-400")
+              end
+            end
+
+            hstack(spacing: 8, alignment: :center) do
+              button("Apply controls", type: "submit")
+                .tw("rounded-xl bg-slate-950 px-4 py-2.5 text-sm font-black text-white hover:bg-violet-700")
+              a("Reset", href: story_path(story: story_key, story_variant: story_variant))
+                .tw("rounded-xl px-4 py-2.5 text-sm font-black text-slate-600 hover:bg-slate-100")
+            end
+          end
+        end
+
+        if available_stories.size > 1
+          nav(aria: { label: "Story variants" }, class: "rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-900/10") do
+            h2("Variants").tw("text-sm font-black uppercase tracking-widest text-slate-500")
+            vstack(alignment: :stretch, spacing: 4, class: "mt-4") do
+              available_stories.each do |variant|
+                active = variant == story_variant
+                attrs = {
+                  href: story_path(story: story_key, story_variant: variant),
+                  class: "rounded-xl px-3 py-2 text-sm font-bold #{active ? 'bg-violet-100 text-violet-900' : 'text-slate-600 hover:bg-slate-100'}",
+                  data: { variant: variant }
+                }
+                attrs[:aria] = { current: "page" } if active
+                a(variant.to_s.humanize, **attrs)
+              end
+            end
+          end
+        end
+
+        section(id: "state-inspector", class: "rounded-3xl bg-slate-950 p-6 text-white") do
+          h2("Server State").tw("text-sm font-black uppercase tracking-widest text-cyan-300")
+          p("The inspector is rendered from the same Rails state as the preview.")
+            .tw("mt-2 text-xs leading-5 text-slate-400")
+
+          vstack(alignment: :stretch, spacing: 6, class: "mt-4") do
+            if state_data.empty?
+              text("No props or state declared.").tw("text-sm text-slate-400")
+            else
+              state_data.each do |name, value|
+                div(class: "grid grid-cols-[minmax(0,1fr)_auto] gap-3 border-t border-white/10 pt-2") do
+                  text(name.to_s).tw("truncate font-mono text-xs text-slate-400")
+                  text(value.inspect).tw("max-w-36 break-all text-right font-mono text-xs text-white")
+                end
+              end
+            end
+          end
+
+          text("Session #{session_id.first(8)}…")
+            .tw("mt-4 block border-t border-white/10 pt-3 font-mono text-[10px] text-slate-500")
+        end
+      end
+
+      vstack(alignment: :stretch, spacing: 24) do
+        section(class: "overflow-hidden rounded-3xl bg-white shadow-xl ring-1 ring-slate-900/10") do
+          header(class: "flex items-center justify-between bg-slate-950 px-6 py-4 text-white") do
+            h2("Preview").tw("text-lg font-black")
+            text("GET #{story_key}/#{story_variant}")
+              .tw("font-mono text-xs text-slate-400")
+          end
+
+          div(
+            id: "component-preview",
+            class: "min-h-[28rem] overflow-auto p-8",
+            data: {
+              sui_story_session: session_id,
+              sui_story: story_key,
+              sui_story_variant: story_variant
+            }
+          ) do
+            render(
+              partial: "storybook/component_preview",
+              locals: {
+                component_class: component_class,
+                component_instance: component_instance,
+                component_props: component_props,
+                story_instance: story_instance,
+                story_variant: story_variant,
+                available_stories: available_stories
+              }
             )
-            
-            # Sale badge
-            if product.on_sale?
-              div.absolute.top(2).left(2) do
-                span.bg("red-500").text_color("white").px(2).py(1).rounded("md").text_size("xs") do
-                  text("Sale")
-                end
-              end
-            end
           end
-          
-          # Product details
-          div.p(4) do
-            h3.font_weight("medium").text_color("gray-900") do
-              text(product.name)
+        end
+
+        section(class: "rounded-3xl bg-white p-8 shadow-sm ring-1 ring-slate-900/10") do
+          h2(dsl_story ? "DSL Story Source" : "Component Definition")
+            .tw("text-xl font-black")
+
+          if story_source_code
+            p("Durable source from #{story_source_path.basename}.")
+              .tw("mt-2 text-sm text-slate-500")
+            div(
+              tabindex: "0",
+              aria: { label: "Scrollable story source" },
+              class: "mt-5 max-h-[36rem] overflow-auto rounded-2xl bg-slate-950 p-5 text-slate-100"
+            ) do
+              text(story_source_code)
+                .tw("whitespace-pre font-mono text-xs leading-5")
             end
-            
-            div.mt(2).flex.items_center.gap(2) do
-              span.text_size("lg").font_weight("bold").text_color("gray-900") do
-                text("$#{product.price}")
-              end
-              if product.original_price
-                span.text_size("sm").text_color("gray-500").line_through do
-                  text("$#{product.original_price}")
-                end
-              end
-            end
-            
-            # Add to cart button
-            button
-              .w_full
-              .mt(4)
-              .bg("blue-600")
-              .text_color("white")
-              .py(2)
-              .rounded("md")
-              .hover("bg-blue-700")
-              .transition do
-              text("Add to Cart")
-            end
+          elsif component_class
+            p("#{component_class.name} < #{component_class.superclass.name}")
+              .tw("mt-3 font-mono text-sm text-slate-600")
+          else
+            p("This story is rendered directly from its registered variant.")
+              .tw("mt-3 text-sm text-slate-500")
           end
         end
       end
     end
   end
-end %&gt;</code></pre>
-              <% when 'product_layout_simple' %>
-                <div class="mb-6">
-                  <p class="mb-3 font-medium">Pure DSL Product Layout</p>
-                  <p class="mb-4">This story demonstrates building product grids using only SwiftUI Rails DSL methods - no component classes required!</p>
-                  
-                  <div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
-                    <p class="text-green-900 font-medium mb-2">DSL-First Features:</p>
-                    <ul class="list-disc list-inside space-y-1 text-green-800">
-                      <li>Uses <code class="bg-green-100 px-1 rounded">dsl_product_card</code> method for consistent cards</li>
-                      <li>Pure DSL composition with <code class="bg-green-100 px-1 rounded">grid</code>, <code class="bg-green-100 px-1 rounded">section</code>, <code class="bg-green-100 px-1 rounded">div</code></li>
-                      <li>Chainable modifiers for styling</li>
-                      <li>No backing component class needed</li>
-                    </ul>
-                  </div>
-                </div>
-                <p class="mb-2 font-medium">Example usage with dsl_product_card:</p>
-                <pre class="bg-gray-100 p-3 rounded overflow-x-auto"><code># In your ERB view:
-&lt;%= swift_ui do
-  section.bg("gray-50").min_h("screen") do
-    div.max_w("7xl").mx("auto").px(4).py(8) do
-      # Header
-      hstack(alignment: :center).mb(8) do
-        vstack(alignment: :start, spacing: 2) do
-          text("Our Products")
-            .text_size("3xl")
-            .font_weight("bold")
-            .text_color("gray-900")
-          
-          text("#{@products.count} items")
-            .text_size("base")
-            .text_color("gray-600")
-        end
-        spacer
-      end
-      
-      # Product grid using dsl_product_card
-      grid(columns: 4, spacing: 6) do
-        @products.each do |product|
-          dsl_product_card(
-            name: product[:name],
-            price: product[:price],
-            image_url: product[:image],
-            variant: product[:variant],
-            currency: "$",
-            show_cta: true,
-            cta_text: "Add to Cart",
-            cta_style: "primary"
-          )
-        end
-      end
-    end
-  end
-end %&gt;
-
-# Or with filters:
-&lt;%= swift_ui do
-  section.bg("gray-50") do
-    div.container.mx_auto.p(6) do
-      # Filters
-      div.bg("white").p(4).rounded("lg").shadow.mb(6) do
-        hstack(spacing: 4) do
-          text("Filter:").font_weight("medium")
-          button("All").px(3).py(1).bg("blue-500").text_color("white").rounded
-          button("On Sale").px(3).py(1).bg("gray-200").rounded
-        end
-      end
-      
-      # Product grid
-      grid(columns: 3, spacing: 4) do
-        @products.each do |product|
-          dsl_product_card(
-            name: product.name,
-            price: product.price,
-            image_url: product.image_url,
-            variant: product.color
-          )
-        end
-      end
-    end
-  end
-end %&gt;</code></pre>
-              <% else %>
-                <div class="mb-4">
-                  <p class="mb-3">This DSL story demonstrates how to use SwiftUI Rails DSL elements directly in your views.</p>
-                  <p class="mb-2">The story file is located at:</p>
-                  <code class="bg-gray-100 px-2 py-1 rounded text-sm">test/components/stories/<%= params[:story] %>_stories.rb</code>
-                </div>
-                <pre class="bg-gray-100 p-3 rounded"><code># Using DSL in your ERB views:
-&lt;%= swift_ui do
-  # Your DSL code here...
-end %&gt;</code></pre>
-              <% end %>
-            <% end %>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<script>
-  // Set storybook context for component actions
-  window.storybookSessionId = '<%= session[:session_id] %>';
-  window.currentStoryName = '<%= params[:story] %>';
-  window.currentStoryVariant = '<%= @story_variant %>';
-</script>
+end %>

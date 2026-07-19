@@ -1,24 +1,5 @@
 # frozen_string_literal: true
 
-# Wrapper component for HTML content from stories
-class StoryHtmlWrapperComponent < ViewComponent::Base
-  def initialize(html_content:)
-    @html_content = html_content
-  end
-  
-  def call
-    @html_content&.html_safe || ""
-  end
-  
-  def inspect
-    Rails.logger.info "=== StoryHtmlWrapperComponent HTML Content ==="
-    Rails.logger.info "Length: #{@html_content&.length || 0}"
-    Rails.logger.info "Content: #{@html_content.inspect}"
-    Rails.logger.info "First 200 chars: #{@html_content.to_s[0..200]}"
-    "#<StoryHtmlWrapperComponent content_length=#{@html_content&.length || 0}>"
-  end
-end
-
 # StoryRenderer provides a rendering context for ViewComponent stories
 # that mimics the ViewComponent test environment, making render() 
 # behave like render_inline()
