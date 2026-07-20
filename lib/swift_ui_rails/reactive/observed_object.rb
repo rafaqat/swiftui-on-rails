@@ -232,18 +232,24 @@ module SwiftUIRails
       end
 
       def data
-        snapshot = @snapshot_mutex.synchronize do
-          unless @snapshot_loaded
-            value = @owner.instance_exec(&@loader)
-            raise TypeError, "observed_resource loader must return a Hash" unless value.is_a?(Hash)
+        unless @snapshot_loaded
+          # Run the loader OUTSIDE the lock: Ruby's Mutex is not reentrant, so a
+          # loader that (transitively) reads this same resource would otherwise
+          # deadlock, and loader I/O should not block other readers. Concurrent
+          # first-loads may each run the loader; the first assignment wins.
+          value = @owner.instance_exec(&@loader)
+          raise TypeError, "observed_resource loader must return a Hash" unless value.is_a?(Hash)
+          duplicated = value.respond_to?(:deep_dup) ? value.deep_dup : value.dup
 
-            @snapshot = value.respond_to?(:deep_dup) ? value.deep_dup : value.dup
-            @snapshot_loaded = true
+          @snapshot_mutex.synchronize do
+            unless @snapshot_loaded
+              @snapshot = duplicated
+              @snapshot_loaded = true
+            end
           end
-
-          @snapshot
         end
 
+        snapshot = @snapshot_mutex.synchronize { @snapshot }
         snapshot.respond_to?(:deep_dup) ? snapshot.deep_dup : snapshot.dup
       end
 

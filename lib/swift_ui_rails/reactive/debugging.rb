@@ -138,11 +138,11 @@ module SwiftUIRails
       
       def debug_row(key, value)
         formatted_value = format_debug_value(value)
-        value_class = value.class.name.downcase
-        
+        value_class = ERB::Util.html_escape(value.class.name.downcase)
+
         <<~HTML
           <tr>
-            <td class="debug-key">#{key}</td>
+            <td class="debug-key">#{ERB::Util.html_escape(key)}</td>
             <td class="debug-value #{value_class}">#{formatted_value}</td>
           </tr>
         HTML
@@ -165,7 +165,7 @@ module SwiftUIRails
         <<~HTML
           <div class="debug-change">
             <div class="change-header">
-              <span class="change-name">#{change[:category]}.#{change[:name]}</span>
+              <span class="change-name">#{ERB::Util.html_escape("#{change[:category]}.#{change[:name]}")}</span>
               <span class="change-time">#{time_ago.round}s ago</span>
             </div>
             <div class="change-values">
@@ -182,9 +182,9 @@ module SwiftUIRails
         when nil
           '<em>nil</em>'
         when String
-          %("#{value}")
+          %("#{ERB::Util.html_escape(value)}")
         when Symbol
-          ":#{value}"
+          ":#{ERB::Util.html_escape(value.to_s)}"
         when TrueClass, FalseClass
           value.to_s
         when Numeric
@@ -243,13 +243,20 @@ module SwiftUIRails
               position: fixed;
               bottom: 20px;
               right: 20px;
-              width: 40px;
-              height: 40px;
-              border-radius: 50%;
+              display: inline-flex;
+              align-items: center;
+              gap: 6px;
+              max-width: 90vw;
+              padding: 8px 14px;
+              border-radius: 999px;
               background: #3b82f6;
               color: white;
               border: none;
-              font-size: 20px;
+              font-size: 13px;
+              font-weight: 600;
+              white-space: nowrap;
+              overflow: hidden;
+              text-overflow: ellipsis;
               cursor: pointer;
               box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
               z-index: 9990;

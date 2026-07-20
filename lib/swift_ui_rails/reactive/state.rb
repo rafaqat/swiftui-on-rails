@@ -51,10 +51,13 @@ module SwiftUIRails
             track_state_change(name, old_value, value)
           end
           
-          # Define mutation methods for arrays/hashes
-          if initial.is_a?(Array)
+          # Define collection mutation helpers. A block/lambda default is a Proc
+          # here, so its eventual Array/Hash type cannot be inferred from the
+          # literal — callers pass `type: Array`/`type: Hash` alongside a block
+          # default to opt in (a plain literal default is still detected directly).
+          if initial.is_a?(Array) || type == Array
             define_array_mutation_methods(name)
-          elsif initial.is_a?(Hash)
+          elsif initial.is_a?(Hash) || type == Hash
             define_hash_mutation_methods(name)
           end
         end
@@ -193,8 +196,11 @@ module SwiftUIRails
         # Mark the rendered tree as stale without exposing old/new state
         # values in public HTML attributes. The encrypted snapshot remains the
         # only browser-carried representation of component-local state.
-        @_content = @_content.to_s.gsub(
-          /(<[^>]+)(>)/,
+        # Annotate only the root opening tag. A gsub over every `<...>` would
+        # also match closing tags (`</div>`), injecting attributes into them
+        # and producing invalid markup on every state change.
+        @_content = @_content.to_s.sub(
+          /\A(\s*<[a-zA-Z][^>]*)(>)/,
           "\\1 data-state-generation=\"#{ERB::Util.html_escape(@state_generation)}\" data-state-invalidated=\"true\"\\2"
         ).html_safe
       end

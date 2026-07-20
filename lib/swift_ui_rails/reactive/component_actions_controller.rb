@@ -23,7 +23,18 @@ module SwiftUIRails
 
       included do
         before_action :verify_component_security, only: :create
+        before_action :enforce_swift_ui_action_size_limit, only: :create
         before_action :check_swift_ui_action_rate_limit, only: :create
+      end
+
+      # Reject oversized payloads from the Content-Length header, before
+      # `params` is ever touched — otherwise Rails parses the whole JSON body
+      # into memory first, defeating the guard.
+      def enforce_swift_ui_action_size_limit
+        length = request.content_length
+        return unless length && length > MAX_REQUEST_BYTES
+
+        raise SwiftUIRails::SecurityError, "Action request is too large"
       end
 
       def create
