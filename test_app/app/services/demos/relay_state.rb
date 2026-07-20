@@ -97,7 +97,10 @@ module Demos
       raise ArgumentError, "message cannot be empty" if text.blank?
 
       bucket = (@sent[thread[:id]] ||= [])
-      raise ArgumentError, "thread is full for this demo" if bucket.length >= MAX_SENT_MESSAGES
+      # Each send appends two records (the visitor message and its reply), so
+      # check against the total to cap the bucket at exactly MAX_SENT_MESSAGES
+      # and reject even an odd-sized (tampered) bucket before it overflows.
+      raise ArgumentError, "thread is full for this demo" if bucket.length + 2 > MAX_SENT_MESSAGES
 
       reply = REPLIES[bucket.length % REPLIES.length]
       bucket << { "from" => "You", "body" => text }

@@ -17,6 +17,9 @@ class DemosIndexTest < ApplicationSystemTestCase
     assert_current_path demos_path(model: "cable")
     expected = DemoCatalog.filtered(:cable)
     assert_selector "[data-demo-card]", count: expected.length
+    expected.each do |entry|
+      assert_selector "[data-demo-card='#{entry.fetch(:slug)}']"
+    end
 
     assert_demo_healthy
   end

@@ -103,6 +103,9 @@ module Demos
       end
       all_keys = candidate.values.flatten
       return deep_dup(DEFAULT_ORDER) unless all_keys.sort == CARDS.keys.sort
+      # A tampered session must not restore a board that already violates a WIP
+      # limit; fall back to defaults rather than trusting it until a later move.
+      return deep_dup(DEFAULT_ORDER) if WIP_LIMITS.any? { |column, limit| candidate.fetch(column).length > limit }
 
       candidate
     end

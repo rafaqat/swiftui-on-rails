@@ -60,5 +60,9 @@ module Demos
       params = LedgerQuery.call(q: "acme", sort: "amount", dir: "desc").to_params
       assert_equal({ q: "acme", sort: "amount", dir: "desc" }, params)
     end
+
+    test "to_params omits dir=asc for any ascending sort" do
+      assert_equal({ sort: "amount" }, LedgerQuery.call(sort: "amount", dir: "asc").to_params)
+    end
   end
 end

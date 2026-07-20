@@ -57,6 +57,9 @@ module Demos
     # step is invalid, nil on success.
     def apply_step!(step_number, params)
       step = STEPS[step_number - 1] or return "Unknown step"
+      # Defense in depth: never let a direct submission jump ahead of the
+      # furthest reachable step (e.g. mark an empty wizard complete via step=4).
+      return "Complete earlier steps first" if step_number > furthest_step
 
       step[:fields].each do |field|
         raw = params[field].to_s.strip

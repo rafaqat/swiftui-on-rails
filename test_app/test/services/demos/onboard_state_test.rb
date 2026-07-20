@@ -64,5 +64,14 @@ module Demos
       assert_equal 1, state.furthest_step
       assert_equal "", state.values["full_name"]
     end
+
+    test "applying a step beyond the furthest reachable step is rejected" do
+      state = OnboardState.new
+
+      error = state.apply_step!(4, {})
+
+      assert_equal "Complete earlier steps first", error
+      assert_not state.completed?
+    end
   end
 end

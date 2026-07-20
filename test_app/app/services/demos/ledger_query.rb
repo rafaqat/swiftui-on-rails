@@ -21,8 +21,8 @@ module Demos
         {
           q: q.presence,
           status: status.presence,
-          sort: sort == "id" && dir == "asc" ? nil : sort,
-          dir: sort == "id" && dir == "asc" ? nil : dir
+          sort: sort == "id" ? nil : sort,
+          dir: dir == "asc" ? nil : dir
         }.compact
       end
     end

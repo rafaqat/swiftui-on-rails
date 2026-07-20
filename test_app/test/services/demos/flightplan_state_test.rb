@@ -84,5 +84,18 @@ module Demos
 
       assert_equal FlightplanState::DEFAULT_ORDER, state.to_h
     end
+
+    test "a restored board that exceeds a WIP limit falls back to defaults" do
+      # Five cards in in_flight (limit 4), still a valid permutation of all cards.
+      tampered = {
+        "backlog" => %w[orbit-nav fuel-audit],
+        "in_flight" => %w[crew-brief telemetry-cal range-safety comms-check landing-sim],
+        "landed" => %w[weather-hold payload-seal]
+      }
+
+      state = FlightplanState.new(tampered)
+
+      assert_equal FlightplanState::DEFAULT_ORDER, state.to_h
+    end
   end
 end
