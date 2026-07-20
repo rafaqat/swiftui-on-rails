@@ -4,7 +4,13 @@ module SwiftUIRails
   class Engine < ::Rails::Engine
     isolate_namespace SwiftUIRails
 
-    config.eager_load_namespaces << SwiftUIRails
+    # NOTE: do not add the bare `SwiftUIRails` module to
+    # `config.eager_load_namespaces`. It is a plain module with no
+    # `eager_load!`, so under `config.eager_load = true` (production and CI)
+    # Rails' eager-load initializer raises `NoMethodError: undefined method
+    # 'eager_load!' for module SwiftUIRails`. The gem requires all of its own
+    # code eagerly via `require_relative` at load time, so there is nothing to
+    # eager-load lazily here.
 
     initializer "swift_ui_rails.assets" do |app|
       app.config.assets.precompile += %w[swift_ui_rails.js swift_ui_rails.css]
