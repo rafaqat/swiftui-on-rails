@@ -222,10 +222,14 @@ let RenderIR plus the gem-owned runtime transport the click and apply the keyed
 result:
 
 ```ruby
+# Capture only the scalar record ID (e.g. from a prop or the current
+# `for_each` value) — never serialize the Active Record instance itself.
+product_id = product.id
+
 button("Add to cart").on_click do
   # Re-load and authorize from the captured scalar ID on every request.
-  product = Current.user.available_products.find(product_id)
-  Current.user.cart.add(product)
+  authorized = Current.user.available_products.find(product_id)
+  Current.user.cart.add(authorized)
 end
 ```
 

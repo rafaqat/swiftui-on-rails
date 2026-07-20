@@ -69,7 +69,7 @@ class WorkflowDemoController < ApplicationController
       source: context.fetch(:source).to_s
     }
     redirect_to workflow_story_path(anchor: "workflow-documents"), notice: "Document creation context verified"
-  rescue SwiftUIRails::DocumentWorkflow::ValidationError => error
+  rescue SwiftUIRails::DocumentWorkflow::ValidationError, ActionController::ParameterMissing => error
     redirect_to workflow_story_path(anchor: "workflow-documents"), alert: error.message
   end
 

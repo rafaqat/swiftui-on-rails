@@ -45,7 +45,8 @@ module Showcase
       event = event_type.to_s
       raise ArgumentError, "Unsupported operations event" unless EVENT_TYPES.include?(event)
 
-      service = resolve_service!(service_id || "api")
+      id = (service_id || "api").to_s
+      service = resolve_service!(id)
 
       case event
       when "deploy"
@@ -60,7 +61,7 @@ module Showcase
         record("Latency incident detected", service, severity: "critical")
       when "recover"
         service["status"] = "operational"
-        service["latency"] = baseline_latency(service_id)
+        service["latency"] = baseline_latency(id)
         record("Service recovered", service, severity: "success")
       when "scale"
         service["capacity"] = [service["capacity"] + 10, 100].min

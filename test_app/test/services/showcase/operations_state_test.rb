@@ -37,6 +37,17 @@ class Showcase::OperationsStateTest < ActiveSupport::TestCase
     assert_equal 47, @state.services.dig("search", "latency")
   end
 
+  test "recover without an explicit service_id defaults to api and restores baseline latency" do
+    @state.apply!("incident")
+
+    assert_equal "degraded", @state.services.dig("api", "status")
+
+    @state.apply!("recover")
+
+    assert_equal "operational", @state.services.dig("api", "status")
+    assert_equal 84, @state.services.dig("api", "latency")
+  end
+
   test "session input cannot add services or unbounded values" do
     restored = Showcase::OperationsState.new(
       {
