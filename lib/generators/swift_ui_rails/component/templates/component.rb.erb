@@ -2,7 +2,7 @@
 
 class <%= component_class_name %> < ApplicationComponent
 <% parsed_props.each do |prop| -%>
-  prop :<%= prop[:name] %>, type: <%= prop[:type] %><%= ", default: #{prop[:default]}" if prop[:default] %>
+  prop :<%= prop[:name] %>, type: <%= prop[:type] %>
 <% end -%>
   
   # Define component states
