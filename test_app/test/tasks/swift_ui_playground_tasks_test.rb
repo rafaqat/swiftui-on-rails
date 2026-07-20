@@ -80,23 +80,6 @@ class SwiftUiPlaygroundTasksTest < ActiveSupport::TestCase
       metrics.dig("context_efficiency", "full_catalog_bytes")
   end
 
-  test "token report preserves exact signed results and the unexecuted provider boundary" do
-    stdout, stderr = invoke_task("swift_ui:tokens:report")
-    report = JSON.parse(stdout)
-
-    assert_empty stderr
-    assert report.fetch("ok")
-    assert_equal true, report.dig("methodology", "tokenizer", "exact")
-    assert_equal "o200k_base", report.dig("methodology", "tokenizer", "encoding")
-    assert_equal "not_run", report.dig("methodology", "provider_model_execution")
-
-    %w[view_source authored_production_closure].each do |scope|
-      react = report.dig("summary", "react_rails", scope, "tokens")
-      swift = report.dig("summary", "swift_ui_rails", scope, "tokens")
-      assert_equal react - swift, report.dig("summary", "savings", scope, "tokens")
-    end
-  end
-
   private
 
   def invoke_task(name, environment = {}, stdin: "")

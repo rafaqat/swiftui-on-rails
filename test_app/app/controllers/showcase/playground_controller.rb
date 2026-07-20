@@ -146,17 +146,6 @@ module Showcase
       render json: report.as_json, status: report.success? ? :ok : :unprocessable_content
     end
 
-    def token_benchmark
-      report = TokenBenchmark::Evaluator.call
-      render json: report.as_json, status: report.success? ? :ok : :unprocessable_content
-    rescue TokenBenchmark::Corpus::Invalid => error
-      Rails.logger.error("[Playground] Token benchmark corpus is invalid: #{error.message}")
-      render json: {
-        ok: false,
-        error: "The fixed token benchmark corpus is invalid."
-      }, status: :unprocessable_content
-    end
-
     private
 
     def assign_playground(draft: nil, draft_token: nil)

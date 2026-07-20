@@ -33,7 +33,6 @@ module Showcase
       assert_select "#playground-run[type='submit'][form='playground-run-form']", count: 1
       assert_select "a[href='#{showcase_playground_language_path}']", minimum: 1
       assert_select "a[href='#{showcase_playground_reliability_path}']", count: 1
-      assert_select "a[href='#{showcase_playground_token_benchmark_path}']", minimum: 1
       assert_select "[data-controller], [data-action], [data-playground-target]", count: 0
       assert_select "[data-sui-actions], [data-sui-binding]", count: 0
     end
@@ -238,35 +237,6 @@ module Showcase
       assert_equal Showcase::Playground::ReliabilityCorpus.all.map(&:id).sort,
         payload.fetch("results").map { |entry| entry.fetch("id") }.sort
       assert payload.fetch("results").all? { |entry| entry.fetch("passed") }
-    end
-
-    test "returns exact paired-reference token counts with separate scopes" do
-      get showcase_playground_token_benchmark_path, as: :json
-
-      assert_response :success
-      payload = response.parsed_body
-      assert_equal true, payload.fetch("ok")
-      assert_equal true, payload.dig("methodology", "tokenizer", "exact")
-      assert_equal "tiktoken_bpe", payload.dig("methodology", "tokenizer", "method")
-      assert_equal "o200k_base", payload.dig("methodology", "tokenizer", "encoding")
-      assert_equal payload.dig("summary", "case_count"), payload.fetch("comparisons").length
-
-      %w[view_source authored_production_closure].each do |scope|
-        react = payload.dig("summary", "react_rails", scope)
-        swift = payload.dig("summary", "swift_ui_rails", scope)
-        savings = payload.dig("summary", "savings", scope)
-
-        assert_operator react.fetch("tokens"), :>, 0
-        assert_operator swift.fetch("tokens"), :>, 0
-        assert_operator react.fetch("files"), :>, 0
-        assert_operator swift.fetch("files"), :>, 0
-        assert_equal react.fetch("tokens") - swift.fetch("tokens"), savings.fetch("tokens")
-
-        macro = payload.dig("summary", "macro", scope)
-        assert_equal payload.dig("summary", "case_count"), macro.fetch("case_count")
-        assert_equal payload.dig("summary", "case_count"),
-          macro.values_at("positive_savings_cases", "negative_savings_cases", "tied_cases").sum
-      end
     end
 
     test "compiles source and returns the client revision in JSON" do

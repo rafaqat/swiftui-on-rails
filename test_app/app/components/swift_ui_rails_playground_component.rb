@@ -24,7 +24,6 @@ class SwiftUiRailsPlaygroundComponent < SwiftUIRails::Component::Base
   prop :language_url, type: String, default: nil
   prop :verify_url, type: String, default: nil
   prop :reliability_url, type: String, default: nil
-  prop :token_benchmark_url, type: String, default: nil
 
   swift_ui do
     vstack(
@@ -69,7 +68,7 @@ class SwiftUiRailsPlaygroundComponent < SwiftUIRails::Component::Base
 
     endpoint_names = %i[
       compile_url run_url show_url preview_url assist_url language_url verify_url
-      reliability_url token_benchmark_url
+      reliability_url
     ]
     endpoint_names.each do |name|
       value = public_send(name)
@@ -165,9 +164,6 @@ class SwiftUiRailsPlaygroundComponent < SwiftUIRails::Component::Base
       spacer
 
       link("Language JSON", destination: language_url || "#")
-        .appearance(:playground_toolbar_button)
-        .font(:caption2)
-      link("Token evidence", destination: token_benchmark_url || "#")
         .appearance(:playground_toolbar_button)
         .font(:caption2)
     end
@@ -358,7 +354,6 @@ class SwiftUiRailsPlaygroundComponent < SwiftUIRails::Component::Base
               playground_ir_inspector
               playground_language_reference
               playground_assistant_status
-              playground_metrics
             end
           end
       end
@@ -488,22 +483,6 @@ class SwiftUiRailsPlaygroundComponent < SwiftUIRails::Component::Base
           text(assist_url || "Assistant endpoint unavailable")
             .font(:caption2)
             .foreground_style(:tertiary)
-        end
-    end.appearance(:playground_language_detail)
-  end
-
-  def playground_metrics
-    disclosure_group("Token benchmark", id: "playground-token-benchmark-panel") do
-      vstack(alignment: :leading, spacing: 4)
-        .appearance(:playground_token_benchmark_workspace) do
-          text("React versus SwiftUI Rails")
-            .font(:caption)
-            .foreground_style(:accent)
-          text("Checked-in paired reference cases report exact token evidence; provider generation and React runtime parity are intentionally separate claims.")
-            .font(:caption2)
-          link("Open token benchmark results", destination: token_benchmark_url || "#")
-            .appearance(:playground_toolbar_button)
-            .font(:caption2)
         end
     end.appearance(:playground_language_detail)
   end

@@ -58,7 +58,7 @@ module Showcase
     def checkout
       @checkout = Checkout.new(checkout_params)
       if @cart.empty?
-        @checkout.errors.add(:base, "Your bag is empty. Add something before checking out.")
+        @checkout.errors[:base] = [ "Your bag is empty. Add something before checking out." ]
         return respond_with_checkout_error
       end
 
