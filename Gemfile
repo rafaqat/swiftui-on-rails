@@ -17,6 +17,6 @@ group :development, :test do
   gem "rubocop", "~> 1.50", require: false
   gem "rubocop-rails", "~> 2.19", require: false
   gem "rubocop-rails-omakase", require: false
-  gem "brakeman", "~> 6.0", require: false # Security scanner for Rails
+  gem "brakeman", "~> 8.0", require: false # Security scanner for Rails
   gem "bundler-audit", "~> 0.9", require: false # Dependency security scanner
 end
