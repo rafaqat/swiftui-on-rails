@@ -39,7 +39,7 @@ Gem::Specification.new do |spec|
 
   # Runtime dependencies
   spec.add_dependency "rails", ">= 6.1.0"
-  spec.add_dependency "view_component", "~> 3.0"
+  spec.add_dependency "view_component", ">= 3", "< 5"
   spec.add_dependency "turbo-rails", ">= 1.0"
   spec.add_dependency "concurrent-ruby", "~> 1.2" # For thread-safe data structures
   spec.add_dependency "nokogiri", "~> 1.15" # For safe HTML parsing
