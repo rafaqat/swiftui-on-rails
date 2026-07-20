@@ -105,8 +105,13 @@ class ProductVariantsComponent < SwiftUIRails::Component::Base
     candidate = variant.stringify_keys
     return false if selected.empty?
 
-    selected["id"] == candidate["id"] ||
-      (selected["type"] == candidate["type"] && selected["value"] == candidate["value"])
+    # Only match on id when both sides actually carry one; otherwise nil == nil
+    # would mark every id-less variant as selected. Fall back to type/value.
+    if selected["id"].present? && candidate["id"].present?
+      selected["id"] == candidate["id"]
+    else
+      selected["type"] == candidate["type"] && selected["value"] == candidate["value"]
+    end
   end
 
   def select_variant(variant)

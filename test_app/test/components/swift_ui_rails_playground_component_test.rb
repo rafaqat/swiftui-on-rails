@@ -126,6 +126,9 @@ class SwiftUiRailsPlaygroundComponentTest < ViewComponent::TestCase
     end
     assert_equal source, page.find("#playground-source", visible: :all).value
     assert_equal data_json, page.find("#playground-data", visible: :all).value
+    # The escaped hostile diagnostic must still be shown to the user, not just
+    # kept out of the DOM — proves diagnostics are rendered, not dropped.
+    assert_selector "#playground-diagnostics-panel", text: breakout, visible: :all
     assert_equal breakout, JSON.parse(page.find("#playground-data-inspector", visible: :all).value).fetch("message")
     assert_equal breakout, JSON.parse(page.find("#playground-render-ir", visible: :all).value).dig("root", "props", "content")
 

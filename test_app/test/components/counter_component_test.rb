@@ -34,6 +34,9 @@ class CounterComponentTest < ViewComponent::TestCase
     assert_equal "Cart", component.label
     assert_equal 5, component.count
     assert_respond_to component, :count=
+
+    component.count = 9
+    assert_equal 9, component.count
   end
   
   def test_generates_a_unique_dom_id_by_default

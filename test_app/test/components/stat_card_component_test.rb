@@ -30,5 +30,6 @@ class StatCardComponentTest < ViewComponent::TestCase
 
     assert_text "Regions"
     assert_no_selector ".bg-emerald-100"
+    assert_no_selector ".bg-rose-100"
   end
 end

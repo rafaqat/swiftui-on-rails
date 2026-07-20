@@ -16,6 +16,8 @@ class KanbanCardComponent < ApplicationComponent
     "comms" => "text-amber-700"
   }.freeze
 
+  UNSAFE_PATH_CHARACTERS = /[\x00-\x20\x7f]/
+
   prop :title, type: String, required: true
   prop :card_key, type: String, default: "sample-card"
   prop :topic, type: String, default: "ops"
@@ -46,6 +48,22 @@ class KanbanCardComponent < ApplicationComponent
   end
 
   private
+
+  # The move forms POST a CSRF token, so their action must be an
+  # application-relative path — never an absolute or protocol-relative URL that
+  # could carry the token to another origin. Mirrors the shell's current_path
+  # validation.
+  def validate_props!
+    super
+
+    [move_left_path, move_right_path].compact.each do |path|
+      unless path.start_with?("/") &&
+          !path.start_with?("//") &&
+          !path.match?(UNSAFE_PATH_CHARACTERS)
+        raise ArgumentError, "move paths must be application-relative"
+      end
+    end
+  end
 
   def move_button(path, glyph, label)
     form(action: path, method: "post") do

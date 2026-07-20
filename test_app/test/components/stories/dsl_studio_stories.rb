@@ -53,6 +53,24 @@ class DslStudioStories < ViewComponent::Storybook::Stories
     ["Icons", "A curated decorative glyph vocabulary"]
   ].freeze
 
+  # Tailwind only sees class names that appear literally in source; an
+  # interpolated `from-#{token}` is invisible to its scanner and the style
+  # silently vanishes. Map each control value to a full literal class string.
+  HERO_GRADIENT_FROM = {
+    "sky-500" => "from-sky-500", "violet-600" => "from-violet-600",
+    "emerald-500" => "from-emerald-500", "amber-500" => "from-amber-500",
+    "rose-500" => "from-rose-500"
+  }.freeze
+  HERO_GRADIENT_TO = {
+    "violet-600" => "to-violet-600", "blue-700" => "to-blue-700",
+    "teal-700" => "to-teal-700", "orange-600" => "to-orange-600",
+    "pink-600" => "to-pink-600"
+  }.freeze
+  FORM_TINTS = {
+    "slate-950" => "bg-slate-950", "blue-600" => "bg-blue-600",
+    "emerald-600" => "bg-emerald-600", "violet-600" => "bg-violet-600"
+  }.freeze
+
   def default(
     nav_brand: "Orbit", nav_links: 3, nav_dark: true,
     hero_title: "Ship interfaces the Rails way",
@@ -89,7 +107,7 @@ class DslStudioStories < ViewComponent::Storybook::Stories
                 .button_style(cta_style.to_sym)
                 .tw("mt-2")
             end
-          end.tw("bg-gradient-to-br from-#{hero_gradient_from} to-#{hero_gradient_to} px-8 py-16")
+          end.tw("bg-gradient-to-br #{HERO_GRADIENT_FROM.fetch(hero_gradient_from, 'from-sky-500')} #{HERO_GRADIENT_TO.fetch(hero_gradient_to, 'to-violet-600')} px-8 py-16")
 
           # ── Feature grid ───────────────────────────────
           div do
@@ -117,7 +135,7 @@ class DslStudioStories < ViewComponent::Storybook::Stories
                 input(type: "email", placeholder: input_placeholder, aria: { label: "Email address" })
                   .tw("w-72 rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-medium focus:outline-none")
                 button(submit_label)
-                  .tw("rounded-full bg-#{form_tint} px-6 py-3 text-sm font-black text-white transition hover:opacity-90")
+                  .tw("rounded-full #{FORM_TINTS.fetch(form_tint, 'bg-slate-950')} px-6 py-3 text-sm font-black text-white transition hover:opacity-90")
               end
             end.tw("border-t border-slate-200 bg-white px-8 py-12")
           end

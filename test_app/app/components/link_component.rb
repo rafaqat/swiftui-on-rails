@@ -27,7 +27,15 @@ class LinkComponent < SwiftUIRails::Component::Base
     component = @component
 
     link(component.text, destination: component.destination).tap do |l|
-      l.attr("target", component.target) if component.target.present?
+      if component.target.present?
+        l.attr("target", component.target)
+        # Any target that opens a new browsing context (_blank or a named
+        # target) exposes window.opener to the opened page — prevent reverse
+        # tabnabbing. Same-frame keywords navigate in place and are exempt.
+        unless %w[_self _parent _top].include?(component.target)
+          l.attr("rel", "noopener noreferrer")
+        end
+      end
       l.text_color(component.text_color) if component.text_color != DEFAULT_TEXT_COLOR
       l.hover_text_color(component.hover_color) if component.hover_color != DEFAULT_HOVER_COLOR
 

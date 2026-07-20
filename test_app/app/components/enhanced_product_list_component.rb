@@ -415,7 +415,14 @@ class EnhancedProductListComponent < SwiftUIRails::Component::Base
   end
 
   def product_id(product)
-    product.try(:id) || product[:id] || SecureRandom.hex(4)
+    # product_id is read separately for the card data and the quick-action
+    # link, so an id-less product must reuse the same generated id across both
+    # calls within a render — otherwise the two data-product-id values diverge.
+    product.try(:id) || product[:id] || generated_product_ids[product.object_id]
+  end
+
+  def generated_product_ids
+    @generated_product_ids ||= Hash.new { |ids, key| ids[key] = SecureRandom.hex(4) }
   end
 
   def product_alt_text(product)
