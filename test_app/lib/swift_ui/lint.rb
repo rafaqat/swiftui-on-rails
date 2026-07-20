@@ -43,6 +43,7 @@ module SwiftUi
       swift-ui-chart
       swift-ui-chart__data
       swift-ui-confirmation
+      swift-ui-disclosure
       swift-ui-document-create-button
       swift-ui-document-creation
       swift-ui-document-export
@@ -57,6 +58,7 @@ module SwiftUi
       swift-ui-map
       swift-ui-map__marker
       swift-ui-map__markers
+      swift-ui-menu
       swift-ui-progress
       swift-ui-reorder-button
       swift-ui-reorder-content
