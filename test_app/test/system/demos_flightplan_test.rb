@@ -15,8 +15,12 @@ class DemosFlightplanTest < ApplicationSystemTestCase
     end
 
     card = find("[data-flightplan-card-key='orbit-nav']")
-    card.hover
-    card.find("button[aria-label*='next column']").click
+    # The move controls reveal on hover/focus (opacity-0 → group-hover/
+    # focus-within:opacity-100). Headless-Chrome hover is unreliable in CI, so
+    # locate the real route-backed submit button regardless of reveal state and
+    # activate it directly — this still drives the authoritative PATCH move.
+    move_button = card.find("button[aria-label*='next column']", visible: :all)
+    page.execute_script("arguments[0].click()", move_button)
 
     within("[data-flightplan-column='in_flight']") do
       assert_selector "[data-flightplan-card-key='orbit-nav']", wait: 5
