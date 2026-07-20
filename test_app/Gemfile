@@ -70,7 +70,7 @@ group :test do
   # Use system testing [https://guides.rubyonrails.org/testing.html#system-testing]
   gem "capybara"
   # Minitest 6 removed minitest/mock, which the regression suite uses.
-  gem "minitest", ">= 5.25", "< 6"
+  gem "minitest", ">= 5.25", "< 7"
   gem "selenium-webdriver"
   
   # Code coverage reporting
