@@ -23,6 +23,8 @@ module Showcase
     def add_to_cart
       values = params.permit(:product_id, :quantity)
       product = @catalog.find(values[:product_id].to_s)
+      return respond_with_error("That product could not be found.") unless product
+
       @cart.add(values[:product_id], values[:quantity].presence || 1)
       persist_cart
 
@@ -43,6 +45,8 @@ module Showcase
 
     def remove_from_cart
       product = @catalog.find(params[:id].to_s)
+      return respond_with_error("That product could not be found.") unless product
+
       @cart.remove(params[:id].to_s)
       persist_cart
 
@@ -54,7 +58,7 @@ module Showcase
     def checkout
       @checkout = Checkout.new(checkout_params)
       if @cart.empty?
-        @checkout.errors[:base] = [ "Your bag is empty. Add something before checking out." ]
+        @checkout.errors.add(:base, "Your bag is empty. Add something before checking out.")
         return respond_with_checkout_error
       end
 

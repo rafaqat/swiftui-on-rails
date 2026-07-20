@@ -41,6 +41,10 @@ module Showcase
         rescue JSON::GeneratorError, TypeError, ArgumentError
           return failure("artifact_shape", "The artifact contains unsupported values.")
         end
+        # parse_artifact returns any JSON value; a non-object (array, number,
+        # string, null) would make artifact["schema"] raise TypeError, escaping
+        # the scoped parse rescue above. Fail gracefully instead.
+        return failure("artifact_shape", "The artifact must be a JSON object.") unless artifact.is_a?(Hash)
         return failure("artifact_schema", "This is not a SwiftUI Rails playground artifact.") unless artifact["schema"] == Artifact::SCHEMA
         return failure("artifact_version", "Artifact version `#{artifact['version'].inspect}` is not supported.") unless artifact["version"] == Artifact::VERSION
 
@@ -161,13 +165,7 @@ module Showcase
           )
         end
 
-        expected = {
-          "id" => LanguageCatalog.to_h.fetch("name"),
-          "version" => LanguageCatalog::VERSION,
-          "catalog_schema_version" => LanguageCatalog::SCHEMA_VERSION,
-          "ir_schema" => IntermediateRepresentation::SCHEMA,
-          "ir_version" => IntermediateRepresentation::VERSION
-        }
+        expected = Artifact.language_metadata
         mismatch = expected.find { |key, value| language[key] != value }
         if mismatch
           return failure(

@@ -62,7 +62,15 @@ module Showcase
         last_result = nil
 
         MAX_ATTEMPTS.times do |index|
-          last_source = generate(messages)
+          # Only the model adapter is untrusted here. Scope the rescue to it so a
+          # real defect in Runner/FixtureParser downstream surfaces as a bug
+          # rather than being masked as an "assistant_failure".
+          last_source = begin
+            generate(messages)
+          rescue StandardError => error
+            Rails.logger.error("[Playground] Assistant adapter failed: #{error.class}: #{error.message}")
+            return failure("assistant_failure", "The assistant could not produce a safe view.", attempts: index + 1)
+          end
           unless last_source.is_a?(String) && last_source.bytesize <= Limits::SOURCE_BYTES
             return failure("assistant_output", "The model adapter must return bounded DSL source as a string.", attempts: index + 1)
           end
@@ -88,9 +96,6 @@ module Showcase
           attempts: MAX_ATTEMPTS,
           diagnostics: last_result&.diagnostics || [].freeze
         ).freeze
-      rescue StandardError => error
-        Rails.logger.info("[Playground] Assistant adapter failed: #{error.class}")
-        failure("assistant_failure", "The assistant could not produce a safe view.")
       end
 
       private

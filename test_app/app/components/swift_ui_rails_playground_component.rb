@@ -518,7 +518,10 @@ class SwiftUiRailsPlaygroundComponent < SwiftUIRails::Component::Base
     json = JSON.pretty_generate(value)
     return json if json.bytesize <= IR_DISPLAY_BYTES
 
-    "#{json.byteslice(0, IR_DISPLAY_BYTES)}\n… display truncated at #{IR_DISPLAY_BYTES / 1024} KiB"
+    # byteslice can cut a multibyte character in half; scrub the invalid tail
+    # so the textarea receives valid UTF-8.
+    prefix = json.byteslice(0, IR_DISPLAY_BYTES).scrub
+    "#{prefix}\n… display truncated at #{IR_DISPLAY_BYTES / 1024} KiB"
   rescue JSON::GeneratorError, TypeError
     "Unavailable"
   end

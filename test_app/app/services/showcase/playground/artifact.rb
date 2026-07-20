@@ -17,6 +17,18 @@ module Showcase
       LANGUAGE_KEYS = %w[id version catalog_schema_version ir_schema ir_version].freeze
       TEST_KEYS = %w[compile semantic_ir_sha256 accessibility security_profile].freeze
 
+      # Single source of truth for the artifact's language-contract block, so the
+      # builder here and ArtifactVerifier's expectation can never drift apart.
+      def self.language_metadata
+        {
+          "id" => LanguageCatalog.to_h.fetch("name"),
+          "version" => LanguageCatalog::VERSION,
+          "catalog_schema_version" => LanguageCatalog::SCHEMA_VERSION,
+          "ir_schema" => IntermediateRepresentation::SCHEMA,
+          "ir_version" => IntermediateRepresentation::VERSION
+        }.freeze
+      end
+
       attr_reader :document
 
       def self.build(source:, data:, ir:)
@@ -35,13 +47,7 @@ module Showcase
         @document = deep_freeze({
           "schema" => SCHEMA,
           "version" => VERSION,
-          "language" => {
-            "id" => LanguageCatalog.to_h.fetch("name"),
-            "version" => LanguageCatalog::VERSION,
-            "catalog_schema_version" => LanguageCatalog::SCHEMA_VERSION,
-            "ir_schema" => IntermediateRepresentation::SCHEMA,
-            "ir_version" => IntermediateRepresentation::VERSION
-          },
+          "language" => self.class.language_metadata,
           "source" => source_text,
           "fixture" => fixture,
           "tests" => {

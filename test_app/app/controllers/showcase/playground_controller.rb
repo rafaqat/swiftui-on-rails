@@ -239,14 +239,25 @@ module Showcase
         "font-src 'self' data:; frame-ancestors 'self'; base-uri 'none'; form-action 'none'"
     end
 
+    # content_length.to_i treats an absent Content-Length as 0, so a chunked
+    # request could stream an arbitrarily large body past the cap. Reject a
+    # missing or malformed length as well as an oversized one (fail closed).
+    def request_body_too_large_or_unknown?
+      header = request.get_header("CONTENT_LENGTH")
+      return true if header.blank?
+
+      length = Integer(header, exception: false)
+      length.nil? || length > Playground::Limits::REQUEST_BYTES
+    end
+
     def reject_oversized_form_request
-      return unless request.content_length.to_i > Playground::Limits::REQUEST_BYTES
+      return unless request_body_too_large_or_unknown?
 
       render plain: "The playground form is too large.", status: :content_too_large
     end
 
     def reject_oversized_json_request
-      return unless request.content_length.to_i > Playground::Limits::REQUEST_BYTES
+      return unless request_body_too_large_or_unknown?
 
       message = "The playground request is larger than #{Playground::Limits::REQUEST_BYTES / 1024} KiB."
       if action_name == "compile"
