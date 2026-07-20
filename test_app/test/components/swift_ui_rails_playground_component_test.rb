@@ -35,10 +35,8 @@ class SwiftUiRailsPlaygroundComponentTest < ViewComponent::TestCase
     assert_selector "#playground-ir-panel"
     assert_selector "#playground-language-panel"
     assert_selector "#playground-assistant-panel"
-    assert_selector "#playground-token-benchmark-panel"
     assert_selector "a[href='/showcase/playground/language']", minimum: 1
     assert_selector "a[href='/showcase/playground/reliability']", visible: :all
-    assert_selector "a[href='/showcase/playground/token-benchmark']", minimum: 1
     assert_text "One cognitive model"
     assert_text "Server round trips · no application JavaScript"
 
@@ -148,7 +146,7 @@ class SwiftUiRailsPlaygroundComponentTest < ViewComponent::TestCase
 
     %i[
       compile_url run_url show_url preview_url assist_url language_url verify_url
-      reliability_url token_benchmark_url
+      reliability_url
     ].each do |endpoint|
       [ "https://attacker.test/tool", "//attacker.test/tool", "/\\evil.test/tool", "/\tevil.test/tool" ].each do |unsafe_url|
         assert_raises(ArgumentError, "#{endpoint}: #{unsafe_url.inspect}") do
@@ -184,8 +182,7 @@ class SwiftUiRailsPlaygroundComponentTest < ViewComponent::TestCase
     assist_url: "/showcase/playground/assist",
     language_url: "/showcase/playground/language",
     verify_url: "/showcase/playground/verify",
-    reliability_url: "/showcase/playground/reliability",
-    token_benchmark_url: "/showcase/playground/token-benchmark"
+    reliability_url: "/showcase/playground/reliability"
   )
     SwiftUiRailsPlaygroundComponent.new(
       examples: examples,
@@ -200,8 +197,7 @@ class SwiftUiRailsPlaygroundComponentTest < ViewComponent::TestCase
       assist_url: assist_url,
       language_url: language_url,
       verify_url: verify_url,
-      reliability_url: reliability_url,
-      token_benchmark_url: token_benchmark_url
+      reliability_url: reliability_url
     )
   end
 end
