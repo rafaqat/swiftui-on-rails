@@ -82,7 +82,11 @@ class StorySession
     component = renderer.render_story(story_instance, story_variant, **filtered_props)
 
     if component.is_a?(ViewComponent::Base) && reactive_state_component?(component)
-      component.state_values = state
+      # Mirror save_component_state's contract: restore only declared state
+      # keys, and symbolize them so the component's symbol-keyed getters read
+      # them back (persisted state is stringified for the cache).
+      declared = component.class.state_definitions.keys
+      component.state_values = state.symbolize_keys.slice(*declared)
     end
 
     component

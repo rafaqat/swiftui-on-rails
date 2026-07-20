@@ -59,7 +59,7 @@ class StorySourceExtractor
         line = lines[index]
         next if line.strip.empty?
 
-        if line.strip == "end" && line[/^\s*/].length == indent_level
+        if line.match?(/^\s*end(?:\s+#.*)?\s*$/) && line[/^\s*/].length == indent_level
           method_end = index
           break
         end

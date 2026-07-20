@@ -43,6 +43,15 @@ class StorybookStoryRegistry
           raise NameError,
                 "#{file} must define #{story_class_name} as a ViewComponent::Storybook::Stories subclass"
         end
+        # safe_constantize can resolve an already-loaded same-named class from a
+        # different file; require that this file actually defines it so we never
+        # register the wrong class (and its variants) under this story name.
+        definition_file = Object.const_source_location(story_class_name)&.first
+        unless definition_file && File.expand_path(definition_file) == File.expand_path(file)
+          raise NameError,
+                "#{file} must define #{story_class_name}, but it resolves to " \
+                "#{definition_file || 'an unknown location'}"
+        end
         if registry.key?(story_name)
           raise ArgumentError, "Duplicate Storybook story name: #{story_name}"
         end
