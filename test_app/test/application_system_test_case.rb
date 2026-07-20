@@ -18,10 +18,19 @@ class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
   end
   
   # Helper to check for browser console errors
+  # Console errors that are benign framework noise, not application bugs.
+  IGNORED_CONSOLE_ERRORS = [
+    # Turbo Drive aborts an in-flight fetch whenever a navigation supersedes it
+    # (AbortError). It is expected and timing-dependent — it surfaces under CI's
+    # slower timing but not locally — so it must not fail an otherwise-clean page.
+    "The user aborted a request"
+  ].freeze
+
   def assert_no_console_errors
     logs = page.driver.browser.logs.get(:browser)
     errors = logs.select { |log| log.level == "SEVERE" }
-    
+      .reject { |log| IGNORED_CONSOLE_ERRORS.any? { |ignored| log.message.include?(ignored) } }
+
     if errors.any?
       error_messages = errors.map { |e| e.message }.join("\n")
       raise "Browser console errors found:\n#{error_messages}"
