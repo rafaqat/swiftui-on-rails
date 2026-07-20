@@ -191,15 +191,15 @@ module Showcase
         compact_bytes = @assistant_contract.prompt_context(catalog: @catalog).bytesize
         full_tokens = estimated_tokens(full_bytes)
         compact_tokens = estimated_tokens(compact_bytes)
-        omissions = if @catalog.respond_to?(:generation_contract_omissions)
-          @catalog.generation_contract_omissions
-        else
-          [].freeze
-        end
+        # If the catalog cannot report omissions, the constraint check is
+        # unverified — do not mark it preserved/passed on that fallback path.
+        verification_available = @catalog.respond_to?(:generation_contract_omissions)
+        omissions = verification_available ? @catalog.generation_contract_omissions : [].freeze
 
         {
-          passed: compact_bytes < full_bytes && omissions.empty?,
-          executable_constraints_preserved: omissions.empty?,
+          passed: verification_available && compact_bytes < full_bytes && omissions.empty?,
+          executable_constraints_preserved: verification_available && omissions.empty?,
+          executable_constraints_verified: verification_available,
           omitted_executable_constraints: omissions,
           full_catalog_bytes: full_bytes,
           compact_generation_context_bytes: compact_bytes,

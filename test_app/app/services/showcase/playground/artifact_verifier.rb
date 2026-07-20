@@ -28,7 +28,19 @@ module Showcase
       end
 
       def call
-        artifact = parse_artifact
+        # Scope the parse rescues to parsing only. A method-level rescue would
+        # also swallow ArgumentError/TypeError raised inside the downstream
+        # compiler/validator/renderer services, misreporting a real bug as an
+        # "unsupported values" artifact failure.
+        artifact = begin
+          parse_artifact
+        rescue JSON::ParserError, JSON::NestingError
+          return failure("artifact_syntax", "The artifact is not valid bounded JSON.")
+        rescue FixtureParser::DuplicateKeyError => error
+          return failure("artifact_duplicate_key", "The artifact repeats the object key `#{error.key}`.", path: error.path)
+        rescue JSON::GeneratorError, TypeError, ArgumentError
+          return failure("artifact_shape", "The artifact contains unsupported values.")
+        end
         return failure("artifact_schema", "This is not a SwiftUI Rails playground artifact.") unless artifact["schema"] == Artifact::SCHEMA
         return failure("artifact_version", "Artifact version `#{artifact['version'].inspect}` is not supported.") unless artifact["version"] == Artifact::VERSION
 
@@ -71,12 +83,6 @@ module Showcase
         return rejected(formatted.diagnostics) unless formatted.success?
 
         Verification.new(ok: true, diagnostics: [].freeze, canonical_source: formatted.source).freeze
-      rescue JSON::ParserError, JSON::NestingError
-        failure("artifact_syntax", "The artifact is not valid bounded JSON.")
-      rescue FixtureParser::DuplicateKeyError => error
-        failure("artifact_duplicate_key", "The artifact repeats the object key `#{error.key}`.", path: error.path)
-      rescue JSON::GeneratorError, TypeError, ArgumentError
-        failure("artifact_shape", "The artifact contains unsupported values.")
       end
 
       private
