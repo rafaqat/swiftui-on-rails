@@ -58,20 +58,20 @@ module SwiftUIRails
       class << self
         # Validate and sanitize a URL
         def validate_url(url, options = {})
-          return nil if url.nil? || url.empty?
-          
+          return options[:fallback] if url.nil? || url.empty?
+
           # Check for dangerous patterns first
           if contains_dangerous_pattern?(url)
             Rails.logger.warn "Blocked dangerous URL pattern: #{url}"
-            return nil
+            return options[:fallback]
           end
-          
+
           # Parse the URL
           begin
             uri = URI.parse(url)
           rescue URI::InvalidURIError
             Rails.logger.warn "Invalid URL format: #{url}"
-            return nil
+            return options[:fallback]
           end
           
           # URI treats network-path references such as //evil.example/image as
@@ -89,13 +89,13 @@ module SwiftUIRails
 
             return url if options[:allow_relative] != false
             Rails.logger.warn "Relative URLs not allowed: #{url}"
-            return nil
+            return options[:fallback]
           end
-          
+
           # Check scheme
           unless ALLOWED_SCHEMES.include?(uri.scheme&.downcase)
             Rails.logger.warn "Disallowed URL scheme: #{uri.scheme} in #{url}"
-            return nil
+            return options[:fallback]
           end
           
           # Check domain if external URLs need approval
@@ -139,16 +139,28 @@ module SwiftUIRails
           validate_url(src, options)
         end
         
-        # Validate script source URL
+        # Validate script source URL.
+        #
+        # Scripts are an execution trust boundary, so external hosts are never
+        # allowed here — public package CDNs (unpkg, jsdelivr, cdnjs) serve
+        # arbitrary packages, so an attacker-controlled src could execute code
+        # in the page. Only application-relative, host-less paths are accepted;
+        # pin external scripts through a dedicated manifest with SRI instead.
         def validate_script_src(src, options = {})
-          # Scripts should be more restricted
-          options = {
-            allow_relative: true,
-            require_approved_domains: true,
-            fallback: nil
-          }.merge(options)
-          
-          validate_url(src, options)
+          source = src.to_s
+          return options[:fallback] if source.empty?
+          return options[:fallback] if contains_dangerous_pattern?(source)
+
+          begin
+            uri = URI.parse(source)
+          rescue URI::InvalidURIError
+            return options[:fallback]
+          end
+
+          # Reject any absolute URL, scheme, or network-path reference (//host).
+          return options[:fallback] if uri.scheme || uri.host
+
+          source
         end
 
         # Validate an iframe/WebView source. Relative URLs are same-origin and
@@ -220,13 +232,14 @@ module SwiftUIRails
         # Add a domain to the approved list at runtime (for configuration)
         def add_approved_domain(domain)
           return false if domain.nil? || domain.empty?
-          
-          # Validate domain format
-          unless domain.match?(/\A[a-z0-9\-\.]+\z/i)
+
+          # Require at least two valid labels so a bare TLD ("com") cannot be
+          # approved and then match every "*.com" host via the suffix check.
+          unless valid_embed_domain?(domain)
             Rails.logger.warn "Invalid domain format: #{domain}"
             return false
           end
-          
+
           normalized_domain = domain.downcase
           @approved_domains_mutex.synchronize do
             @additional_approved_domains.add(normalized_domain)

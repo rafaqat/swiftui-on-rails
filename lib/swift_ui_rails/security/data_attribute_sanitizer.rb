@@ -100,8 +100,11 @@ module SwiftUIRails
           # Check for dangerous patterns
           DANGEROUS_PATTERNS.each do |pattern|
             if value_str.match?(pattern)
-              # Log potential XSS attempt
-              Rails.logger.warn "Potential XSS attempt blocked in data attribute: #{value_str}"
+              # Log a sanitized, truncated preview: value_str is untrusted, so
+              # interpolating it raw would allow CRLF log forging and dump
+              # sensitive payloads. Prefer the pattern that matched.
+              safe_preview = value_str.gsub(/[\r\n]+/, " ").truncate(120)
+              Rails.logger.warn "Potential XSS attempt blocked in data attribute (pattern #{pattern.source}): #{safe_preview}"
               return ""
             end
           end

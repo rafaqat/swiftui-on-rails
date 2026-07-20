@@ -15,11 +15,15 @@ module SwiftUIRails
       
       # SECURITY: Render CSRF protection token field
       # Uses Rails' built-in helpers to ensure proper CSRF protection
-      def render_csrf_protection
+      def render_csrf_protection(action: nil, method: nil)
         return "" unless protect_against_forgery?
-        
-        # Get the token and parameter name from Rails
-        token = form_authenticity_token
+
+        # Bind the token to this form's action/method so apps with
+        # per_form_csrf_tokens generate a correctly-scoped token.
+        form_options = {}
+        form_options[:action] = action if action
+        form_options[:method] = method if method
+        token = form_authenticity_token(form_options: form_options)
         param = request_forgery_protection_token
         
         # Return a hidden input element
@@ -63,13 +67,18 @@ module SwiftUIRails
           attrs[:data][:turbo] = "true" unless attrs[:data].key?(:turbo)
         end
         
+        # Only bind the session CSRF token to same-origin submissions. A
+        # cross-origin action would otherwise receive the token and could
+        # replay it in a forged request against this app.
+        same_origin_action = same_origin_action?(action)
+
         # Create the form element
         create_element(:form, nil, **attrs) do
           elements = []
-          
-          # Add CSRF token for non-GET requests
-          if method != "GET" && protect_against_forgery?
-            elements << render_csrf_protection
+
+          # Add CSRF token for non-GET, same-origin requests
+          if method != "GET" && same_origin_action && protect_against_forgery?
+            elements << render_csrf_protection(action: attrs[:action], method: method)
           end
           
           # Add method override for non-POST/GET methods
@@ -128,26 +137,34 @@ module SwiftUIRails
         end
       end
       
-      # SECURITY: Get the current CSRF token
+      # SECURITY: Get the current CSRF token.
+      #
+      # In a real controller request the ActionView helper is always present
+      # and returns a session-bound token the server accepts. The
+      # non-helper branch is only reached by render-only contexts (storybook
+      # previews, isolated DSL rendering) where no form is actually submitted,
+      # so a placeholder keeps rendering working without ever affecting a real
+      # submission. A missing session on a genuine request would already have
+      # failed Rails' own forgery checks upstream.
       def form_authenticity_token(form_options: {})
         if respond_to?(:helpers) && helpers.respond_to?(:form_authenticity_token)
           helpers.form_authenticity_token(form_options: form_options)
-        elsif defined?(ActionController::Base) && respond_to?(:session)
-          # Generate token using Rails internals
-          masked_authenticity_token(session, form_options: form_options)
         else
-          # Fallback - should not happen in normal Rails apps
+          # Render-only fallback: never reached during a real form submission.
           SecureRandom.base64(32)
         end
       end
-      
+
       private
-      
-      # Generate a masked authenticity token (Rails internal)
-      def masked_authenticity_token(session, form_options: {})
-        # This would use Rails' internal token generation
-        # For now, we'll rely on the helpers being available
-        raise "Cannot generate CSRF token without Rails helpers"
+
+      # A form action is same-origin when it is host-less (relative). Anything
+      # carrying a scheme or a network-path reference (//host) targets another
+      # origin and must not receive the session CSRF token.
+      def same_origin_action?(action)
+        value = action.to_s
+        return true if value.empty?
+
+        !value.match?(%r{\A(?:[a-z][a-z0-9+.\-]*:)?//}i)
       end
     end
   end

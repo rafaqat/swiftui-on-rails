@@ -18,7 +18,7 @@ module SwiftUIRails
         1/1 3/2 4/3 5/4 16/9 16/10 21/9
       ].freeze
       
-      VALID_GRID_COLS = (1..12).to_a + %w[none subgrid].freeze
+      VALID_GRID_COLS = ((1..12).to_a + %w[none subgrid]).freeze
       
       VALID_SPACING = %w[
         0 px 0.5 1 1.5 2 2.5 3 3.5 4 5 6 7 8 9 10 11 12 
@@ -111,7 +111,12 @@ module SwiftUIRails
           return "grid-cols-1" unless cols
           
           cols_value = cols.to_s
-          if VALID_GRID_COLS.include?(cols.to_i) || VALID_GRID_COLS.include?(cols_value)
+          # Guard the interpolated value itself: String#to_i parses only leading
+          # digits, so "1alert(1)" would otherwise pass the numeric check and be
+          # interpolated verbatim. Only accept an exact allowlist match or a
+          # fully-numeric string whose integer value is allowlisted.
+          if VALID_GRID_COLS.include?(cols_value) ||
+             (cols_value.match?(/\A\d+\z/) && VALID_GRID_COLS.include?(cols_value.to_i))
             "grid-cols-#{cols_value}"
           else
             "grid-cols-1"

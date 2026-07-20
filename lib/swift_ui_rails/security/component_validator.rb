@@ -144,6 +144,12 @@ module SwiftUIRails
                 error_list << "#{prop_name} #{options[:message] || 'is invalid'}"
               end
             when :numericality
+              unless value.is_a?(Numeric) && value.real? &&
+                     (!value.respond_to?(:finite?) || value.finite?)
+                error_list << "#{prop_name} must be a finite number"
+                next
+              end
+
               if options[:greater_than_or_equal_to] && value < options[:greater_than_or_equal_to]
                 error_list << "#{prop_name} must be greater than or equal to #{options[:greater_than_or_equal_to]}"
               end

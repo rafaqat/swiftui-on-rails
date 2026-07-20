@@ -59,10 +59,13 @@ class ComprehensiveSecurityTest < ActiveSupport::TestCase
     assert_equal "/images/local.png", 
                  SwiftUIRails::Security::URLValidator.validate_image_src("/images/local.png")
     
-    # Test dangerous URLs
-    assert_nil SwiftUIRails::Security::URLValidator.validate_image_src("javascript:alert('XSS')")
-    assert_nil SwiftUIRails::Security::URLValidator.validate_image_src("data:text/html,<script>alert('XSS')</script>")
-    assert_nil SwiftUIRails::Security::URLValidator.validate_image_src("vbscript:msgbox('XSS')")
+    # Dangerous URLs are blocked and replaced with the configured fallback
+    # (validate_image_src defaults fallback to the placeholder), consistent
+    # with the unapproved-domain rejection path below.
+    placeholder = "/images/placeholder.png"
+    assert_equal placeholder, SwiftUIRails::Security::URLValidator.validate_image_src("javascript:alert('XSS')")
+    assert_equal placeholder, SwiftUIRails::Security::URLValidator.validate_image_src("data:text/html,<script>alert('XSS')</script>")
+    assert_equal placeholder, SwiftUIRails::Security::URLValidator.validate_image_src("vbscript:msgbox('XSS')")
     
     # Test unapproved domains
     result = SwiftUIRails::Security::URLValidator.validate_image_src(
@@ -93,7 +96,7 @@ class ComprehensiveSecurityTest < ActiveSupport::TestCase
         true
       end
       
-      def form_authenticity_token
+      def form_authenticity_token(form_options: {})
         "test-csrf-token"
       end
       
