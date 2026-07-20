@@ -82,7 +82,6 @@ Rails.application.routes.draw do
   post "showcase/playground/assist", to: "showcase/playground#assist", as: :showcase_playground_assist
   post "showcase/playground/verify", to: "showcase/playground#verify", as: :showcase_playground_verify
   get "showcase/playground/reliability", to: "showcase/playground#reliability", as: :showcase_playground_reliability
-  get "showcase/playground/token-benchmark", to: "showcase/playground#token_benchmark", as: :showcase_playground_token_benchmark
 
   get "showcase/calculator", to: "showcase/calculator#show", as: :showcase_calculator
   post "showcase/calculator/key", to: "showcase/calculator#key", as: :showcase_calculator_key

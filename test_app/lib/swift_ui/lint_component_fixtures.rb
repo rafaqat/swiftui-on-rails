@@ -137,12 +137,6 @@ module SwiftUi
           compile_url: "/showcase/playground/compile"
         )
       end
-
-      def token_fixture(case_id)
-        Showcase::TokenBenchmark::Corpus.default.cases
-          .find { |entry| entry.fetch("id") == case_id }
-          .fetch("shared_fixture")
-      end
     end
 
     EXPLICIT_FACTORIES = {
@@ -249,24 +243,6 @@ module SwiftUi
       "TextComponent" => ->(_view_context) { TextComponent.new(content: "Fixture text") },
       "ToastComponent" => lambda do |_view_context|
         ToastComponent.new(message: "Fixture saved", variant: "success")
-      end,
-      "TokenBenchmarks::MissionReadinessComponent" => lambda do |_view_context|
-        fixture = token_fixture("mission-readiness")
-        TokenBenchmarks::MissionReadinessComponent.new(
-          mission: fixture.fetch("mission"),
-          systems: fixture.fetch("systems")
-        )
-      end,
-      "TokenBenchmarks::ProductCatalogComponent" => lambda do |_view_context|
-        fixture = token_fixture("product-catalog")
-        TokenBenchmarks::ProductCatalogComponent.new(
-          store: fixture.fetch("store"),
-          products: fixture.fetch("products")
-        )
-      end,
-      "TokenBenchmarks::ServiceStatusComponent" => lambda do |_view_context|
-        fixture = token_fixture("service-status")
-        TokenBenchmarks::ServiceStatusComponent.new(service: fixture.fetch("service"))
       end
     }.freeze
   end

@@ -101,16 +101,6 @@ namespace :swift_ui do
       exit(1) unless report.success?
     end
   end
-
-  namespace :tokens do
-    desc "Count the fixed React Rails versus SwiftUI Rails reference corpus and print its JSON report"
-    task report: :environment do
-      report = Showcase::TokenBenchmark::Evaluator.call
-
-      puts JSON.pretty_generate(report.as_json)
-      exit(1) unless report.success?
-    end
-  end
 end
 
 namespace :playground do
