@@ -21,7 +21,7 @@ class RailsFirstDemoTest < ApplicationSystemTestCase
     task.find("button[aria-label='Complete Prepare the release candidate']").click
 
     task = find("#rails-todos li", text: "Prepare the release candidate")
-    assert_selector task, ".line-through", text: "Prepare the release candidate"
+    task.assert_selector ".line-through", text: "Prepare the release candidate"
     assert_selector "#recent-activity", text: "Task completed"
 
     task.find("summary", text: "Edit task").click

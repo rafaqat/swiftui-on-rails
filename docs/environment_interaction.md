@@ -53,7 +53,7 @@ class LoginComponent < SwiftUIRails::Component::Base
 end
 ```
 
-Setting `self.focused_field = :password` in a server action requests password focus after that component is replaced. Native `focus` and `blur` produce bubbling `swift-ui-focus-change` events. They intentionally do not post every focus transition to the server.
+Setting `self.focused_field = :password` in a server action requests password focus after that component is replaced. Native `focus` and `blur` do not bubble; the framework emits a bubbling custom `swift-ui-focus-change` event instead (delegated listeners that need the native events can use `focusin`/`focusout`). It intentionally does not post every focus transition to the server.
 
 Use `.focusable` to opt a custom element into the tab order. Prefer native controls and links whenever they fit.
 

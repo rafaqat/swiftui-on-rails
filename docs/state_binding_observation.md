@@ -1,6 +1,6 @@
 # State, binding, and observation
 
-SwiftUI Rails keeps component-local interaction state on the server. The browser receives short-lived capabilities and an opaque encrypted snapshot, never authoritative plaintext props, state, bindings, or observed data.
+SwiftUI Rails keeps component-local interaction state on the server. The browser receives short-lived capabilities and an opaque encrypted snapshot. Rendered values (a count, an inventory list) still appear in the HTML as presentation data, but the server never accepts client-supplied plaintext as an authoritative props, state, binding, or snapshot input — authority always travels through the signed, encrypted capability.
 
 ## State and Binding
 

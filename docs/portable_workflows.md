@@ -35,7 +35,7 @@ params.expect(reorder: %i[item_key target_key placement])
 # => { item_key: "design", target_key: "release", placement: "before" }
 ```
 
-The controller must authorize the collection, confirm every key belongs to it, reject duplicate or stale keys, persist the new position transactionally, and render or redirect to the authoritative order. The DSL bounds a rendered collection to 500 items and stable keys to 256 bytes.
+The controller must authorize the collection, confirm every key belongs to it, reject duplicate or stale keys, and persist the new position transactionally. A transaction alone does not prevent two concurrent reorders from validating against the same order and committing conflicting positions, so guard against that with an optimistic collection-revision token (rejecting stale revisions) or by locking the order rows before applying the move, then render or redirect to the authoritative order. The DSL bounds a rendered collection to 500 items and stable keys to 256 bytes.
 
 Use `layout: :list`, `:grid`, or `:custom`. `:custom` adds no layout CSS, so application styles can implement any arrangement while retaining the item wrappers and controls.
 
@@ -64,7 +64,7 @@ end
 
 The action rail is always visible and its real Rails form buttons remain in normal focus order. A leading or trailing pointer swipe only marks the row as revealed and announces that actions are available. It never submits, deletes, archives, or treats a gesture as authorization. Full-swipe execution is intentionally absent.
 
-Mutation destinations must be same-origin absolute paths. Methods are limited to `POST`, `PATCH`, `PUT`, and `DELETE`; GET navigation belongs in a normal link. Forms include Rails authenticity tokens in request-backed rendering and opt out of Turbo so a full-page fallback, CSP nonces, redirects, and validation errors behave consistently.
+Mutation destinations must be same-origin absolute paths. Methods are limited to `POST`, `PATCH`, `PUT`, and `DELETE`; GET navigation belongs in a normal link. Forms include Rails authenticity tokens in request-backed rendering and opt out of Turbo so a full-page fallback, CSP nonces, redirects, and validation errors behave consistently. The authenticity token proves request origin, not permission: the destination controller must still authorize the current user for the specific record and action (with tenant isolation where applicable) before it archives, deletes, or otherwise mutates.
 
 ## Document import and creation
 

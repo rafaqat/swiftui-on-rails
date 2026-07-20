@@ -13,7 +13,9 @@ module Showcase
       assert_select "#atlas-systems"
       assert_select "#atlas-alerts"
       assert_select "#atlas-documents"
-      assert_select "form input[name='authenticity_token']", minimum: 1 if ActionController::Base.allow_forgery_protection
+      # CSRF-token rendering is asserted with forgery protection enabled in
+      # mission_control_security_test.rb; here it would be a no-op (test env
+      # disables allow_forgery_protection by default).
     end
 
     test "HTML sequence moves use PRG and persist only known stable keys" do
