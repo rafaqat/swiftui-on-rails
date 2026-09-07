@@ -43,7 +43,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency "turbo-rails", ">= 1.0"
   spec.add_dependency "concurrent-ruby", "~> 1.2" # For thread-safe data structures
   spec.add_dependency "nokogiri", "~> 1.15" # For safe HTML parsing
-  spec.add_dependency "marcel", "~> 1.0" # For server-side document content inspection
+  spec.add_dependency "marcel", ">= 1", "< 3" # For server-side document content inspection
 
   # Development dependencies
   spec.add_development_dependency "bundler", "~> 2.0"
